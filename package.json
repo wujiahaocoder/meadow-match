@@ -1,0 +1,19 @@
+{
+  "name": "meadow-match-offline",
+  "version": "1.0.0",
+  "private": true,
+  "license": "CC-BY-4.0",
+  "author": "wujiahaocoder",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wujiahaocoder/meadow-match.git"
+  },
+  "description": "Native offline tile-matching game with procedural levels and authenticated decimal saves",
+  "scripts": {
+    "build": "node build.cjs",
+    "test": "node tests/engine.test.cjs && node tests/vault.test.cjs && node tests/audit.test.cjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
