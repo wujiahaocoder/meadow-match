@@ -1,0 +1,13 @@
+node_modules/
+test-results/
+playwright-report/
+coverage/
+.env
+.env.*
+*.log
+*.tmp
+*.save.json
+*.meadow-save.txt
+咩咩田园-第*-双码存档.txt
+.DS_Store
+Thumbs.db
