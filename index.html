@@ -1,0 +1,1415 @@
+<!doctype html>
+<!--
+Meadow Match / 咩咩田园 — Copyright (c) 2026 wujiahaocoder
+SPDX-License-Identifier: CC-BY-4.0
+Source: https://github.com/wujiahaocoder/meadow-match
+License: https://creativecommons.org/licenses/by/4.0/
+Reuse and modification are permitted with attribution and an indication of changes.
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#edf3dd">
+<meta name="description" content="咩咩田园：一款可离线游玩的原创田园三消小游戏。无限生成关卡，支持双码加密存档。">
+<title>咩咩田园 · 三个刚刚好</title>
+<style>:root {
+  --ink: #284334;
+  --muted: #69795e;
+  --green: #587742;
+  --lime: #dbe8ae;
+  --paper: #fffef6;
+  --line: #d4dec3;
+  --tile: #fffdf1;
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  color: var(--ink);
+  background: #f3f4e9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 38% 45%, #e4edce 0, transparent 53%),
+    radial-gradient(ellipse at 92% 78%, #e4ead2 0, transparent 37%), #f3f4e9;
+}
+button, input, textarea { font: inherit; }
+button {
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+button:disabled { cursor: default; }
+button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 3px solid #7d994f;
+  outline-offset: 4px;
+}
+svg { display: block; }
+.icon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.site-header { max-width: 1110px; margin: auto; padding: 23px 32px 17px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { display: flex; gap: 10px; align-items: center; }
+.brand-sheep { width: 49px; height: 46px; background: #e3eacb; border: 1px solid #d4dfbb; border-radius: 16px; padding: 2px; }
+.brand-name { font-size: 22px; font-weight: 900; letter-spacing: 3px; }
+.brand-sub { font-size: 9px; letter-spacing: 2.8px; color: #687957; margin-top: 4px; }
+.top-actions { display: flex; align-items: center; gap: 12px; }
+.text-button { display: inline-flex; justify-content: center; align-items: center; gap: 7px; min-height: 40px; padding: 9px 10px; background: transparent; font-size: 12px; color: #607354; border-radius: 10px; transition: background .18s, color .18s; }
+.text-button .icon { width: 17px; height: 17px; flex-shrink: 0; }
+.text-button:disabled { opacity: .55; }
+.offline { font-size: 11px; border: 1px solid #d1ddbb; background: #f8faef; border-radius: 100px; padding: 8px 12px; color: #687c53; display: flex; gap: 7px; align-items: center; }
+.offline:before { content: ""; width: 6px; height: 6px; background: #86a561; border-radius: 50%; box-shadow: 0 0 0 3px #89aa6015; }
+.intro { text-align: center; padding: 8px 16px 25px; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; color: #75885a; font-size: 10px; letter-spacing: 3px; margin-bottom: 10px; }
+.eyebrow:before, .eyebrow:after { content: ""; width: 16px; height: 1px; background: #b6c798; }
+.intro h1 { font-weight: 800; letter-spacing: 2px; font-size: 29px; margin: 0 0 9px; line-height: 1.5; }
+.intro h1 span { position: relative; isolation: isolate; }
+.intro h1 span:after { content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 10px; background: #d4e2a5; border-radius: 50%; transform: rotate(-2deg); z-index: -1; }
+.intro p { font-size: 12px; letter-spacing: 1px; color: #718363; margin: 0; }
+.main-layout { max-width: 950px; display: grid; grid-template-columns: minmax(0, 530px) 270px; gap: 34px; margin: 0 auto; padding: 0 25px 18px; align-items: start; }
+.game-panel { background: linear-gradient(145deg, #f1f5e3, #eaf0d7); border: 1.5px solid #cfdbb7; border-radius: 25px; box-shadow: 0 6px 0 #d6e0be, 0 18px 45px #475b2520, inset 0 1px 0 #fff; padding: 18px 20px 13px; position: relative; isolation: isolate; }
+.game-top { display: flex; align-items: center; gap: 12px; }
+.level-chip { background: #dce8b3; border: 1px solid #c6d697; box-shadow: inset 0 1px 0 #f7fbe7; font-size: 13px; font-weight: 800; letter-spacing: 1px; padding: 10px 14px; border-radius: 12px; flex-shrink: 0; }
+.remaining { margin-left: auto; text-align: right; font-size: 11px; color: #6a7b59; white-space: nowrap; }
+.remaining strong { font-size: 24px; line-height: 1; font-weight: 800; color: #45613a; letter-spacing: -.5px; margin-right: 6px; font-variant-numeric: tabular-nums; }
+.game-state { font-size: 11px; color: #6b8055; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.game-state:before { content: ""; width: 6px; height: 6px; background: #83a35f; border-radius: 50%; }
+.progress-row { display: flex; align-items: center; gap: 11px; margin: 12px 1px 2px; }
+.harvest-progress { height: 5px; flex: 1; overflow: hidden; border-radius: 10px; background: #dce5c8; box-shadow: inset 0 1px 1px #81975a12; }
+.harvest-fill { width: 0; height: 100%; background: linear-gradient(90deg, #99b66e, #668c48); border-radius: inherit; transition: width .4s ease; }
+.harvest-label { font-size: 10px; color: #73845e; min-width: 65px; text-align: right; font-variant-numeric: tabular-nums; }
+.board-wrap { position: relative; width: 100%; max-width: 384px; margin: 8px auto 0; }
+.board { width: 100%; aspect-ratio: 420 / 400; position: relative; isolation: isolate; }
+.board:before, .board:after { content: ""; position: absolute; width: 47px; height: 28px; border: 1px solid #bdcda077; border-radius: 60% 30% 70% 30%; transform: rotate(-25deg); bottom: 8%; left: 2%; z-index: -1; }
+.board:after { left: auto; right: 2%; top: 16%; width: 23px; height: 14px; transform: rotate(40deg); }
+.field-art { position: absolute; inset: 0; width: 100%; height: 100%; color: #afc48a; pointer-events: none; opacity: .65; }
+.tile { position: absolute; border-radius: 10px; background: linear-gradient(#fffef8, #fffbea); border: 1.4px solid #c9d2b0; box-shadow: 0 4px 0 #a4b97d, 0 5px 7px #36502520; padding: 4px; display: flex; align-items: center; justify-content: center; transform-origin: top left; transition: filter .2s; user-select: none; will-change: transform; isolation: isolate; }
+.tile:before { content: ""; position: absolute; inset: 3px; border: 1px solid #fff; border-radius: 7px; z-index: -1; }
+.tile:after { content: ""; position: absolute; inset: -1px -1px -3px; border-radius: 10px; background: #46574280; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 2; }
+.tile.blocked:after { opacity: 1; }
+.tile .produce { width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.tile:not(.blocked):active { filter: brightness(.95); }
+.tile.ghost { margin: 0; z-index: 10000; pointer-events: none; position: fixed; }
+.tray-caption { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 10px 2px 8px; color: #687d51; font-size: 11px; }
+.tray-caption strong { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #49653b; font-weight: 700; white-space: nowrap; }
+#tray-count { background: #dce7c3; color: #577344; border-radius: 6px; padding: 3px 6px; font-size: 10px; font-variant-numeric: tabular-nums; }
+.tray { position: relative; width: 100%; background: #dce6c2; border: 1.5px solid #c3d1a4; border-radius: 13px; box-shadow: inset 0 2px 5px #81975a17, 0 1px 0 #fafdee; padding: 7px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; transition: background .25s, border-color .25s, box-shadow .25s; }
+.slot { aspect-ratio: 1; max-height: 51px; border: 1px dashed #b1c392; border-radius: 8px; background: #f5f8e47a; position: relative; transition: background .2s; }
+.slot:before { content: attr(data-slot); position: absolute; inset: 0; display: grid; place-items: center; color: #a4b28b; font-size: 10px; font-weight: 500; }
+.slot[data-filled="true"] { background: #cad8aa; border-color: transparent; }
+.slot[data-filled="true"]:before { opacity: 0; }
+.tray-items { position: absolute; inset: 7px; pointer-events: none; }
+.tray-items .tile { pointer-events: auto; }
+.tray[data-pressure="warn"] { background: #e8e2bd; border-color: #c8bd87; }
+.tray[data-pressure="danger"], .tray[data-pressure="lost"] { background: #edddc6; border-color: #cfaa82; box-shadow: inset 0 2px 4px #99764b18, 0 0 0 3px #c9a77d12; }
+.tray[data-pressure="danger"] .slot, .tray[data-pressure="lost"] .slot { border-color: #c9b08a; }
+.reserve-row { min-height: 28px; margin: 12px 2px 0; display: flex; align-items: center; gap: 12px; }
+.reserve-label { font-size: 11px; color: #6d7f59; flex-shrink: 0; }
+.reserve { position: relative; width: 144px; height: 44px; display: flex; gap: 6px; flex-shrink: 0; }
+.reserve-slot { width: 44px; height: 44px; flex-shrink: 0; border: 1px dashed #b9c99e; border-radius: 8px; background: #e1eacb; }
+.reserve .tile { padding: 3px; border-radius: 8px; box-shadow: 0 3px 0 #a4b97d; }
+.reserve-hint, .reserve-empty { font-size: 10px; line-height: 1.7; color: #758363; }
+.reserve-hint { margin-left: auto; }
+.reserve-row[data-empty="true"] .reserve, .reserve-row[data-empty="true"] .reserve-hint { display: none; }
+.reserve-row[data-empty="false"] .reserve-empty { display: none; }
+.reserve-empty:before { content: "·"; padding-right: 9px; color: #9eae82; }
+.tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.tool { display: grid; grid-template-columns: 26px 1fr; grid-template-rows: 21px 17px; align-items: center; column-gap: 9px; padding: 12px 14px; background: #fffef5; border: 1px solid #cdd9b7; border-radius: 13px; position: relative; box-shadow: 0 3px 0 #cbd8b0; transition: transform .15s, background .15s, box-shadow .15s; text-align: left; min-height: 66px; }
+.tool .icon { grid-column: 1; grid-row: 1 / 3; width: 25px; height: 25px; color: #68894c; }
+.tool-title { grid-column: 2; grid-row: 1; font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+.tool-count { position: absolute; right: 8px; top: 7px; font-size: 9px; font-weight: 700; color: #708c52; }
+.tool-caption { grid-column: 2; grid-row: 2; font-size: 10px; color: #6f825e; white-space: nowrap; }
+.tool:disabled { background: #eaf0dc; border-color: #d2ddbe; box-shadow: 0 2px 0 #d5dfc3; }
+.tool:disabled .icon { color: #9ba98a; }
+.tool:disabled .tool-title { color: #7a886b; }
+.tool:disabled .tool-count { color: #8a977a; }
+.tool:disabled .tool-caption { color: #829174; }
+.tool:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #cbd8b0; }
+.game-bottom { display: flex; justify-content: center; align-items: center; gap: 13px; margin-top: 11px; }
+.game-bottom .text-button { font-size: 11px; min-height: 34px; padding: 7px 8px; }
+#next-btn { background: #658349; color: #fff; }
+.divider { height: 12px; width: 1px; background: #c7d5ad; }
+.side-panel { padding-top: 6px; }
+.side-heading { display: flex; align-items: center; gap: 10px; color: #6f815b; font-size: 11px; letter-spacing: 2px; }
+.side-heading:after { content: ""; height: 1px; background: #cfdbb8; flex: 1; }
+.mascot-area { height: 185px; display: flex; align-items: center; justify-content: center; position: relative; margin: 5px 0 0; }
+.mascot-area svg { width: 180px; height: 162px; position: relative; z-index: 1; animation: sheep-breathe 4.5s ease-in-out infinite; }
+.mascot-area:before { content: ""; position: absolute; width: 151px; height: 151px; border-radius: 50%; background: #e2eac9; border: 1px dashed #bfcda2; outline: 8px solid #e9efd955; }
+.mascot-area:after { content: "♪"; position: absolute; font-size: 23px; color: #92a769; right: 27px; top: 31px; transform: rotate(15deg); }
+@keyframes sheep-breathe { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-4px) rotate(1deg); } }
+.speech { text-align: center; font-size: 17px; letter-spacing: 1px; font-weight: 700; margin: 0 0 8px; }
+.speech-sub { text-align: center; font-size: 11px; color: #74865e; letter-spacing: .5px; margin: 0 0 25px; }
+.guide { border: 1px solid #d1ddbd; background: #fffef5c4; border-radius: 17px; padding: 18px; box-shadow: 0 3px 0 #e2e8d4; }
+.guide h2 { font-size: 13px; letter-spacing: 1px; margin: 0 0 16px; }
+.rule { display: flex; align-items: center; gap: 10px; margin: 13px 0; color: #6b7c59; font-size: 11px; line-height: 1.9; }
+.rule:last-child { margin-bottom: 0; }
+.rule-num { flex-shrink: 0; width: 24px; height: 24px; background: #e9efd8; border: 1px solid #dce5c8; border-radius: 8px; text-align: center; line-height: 22px; font-size: 10px; font-weight: 700; color: #728851; }
+.guide b { color: #405e31; font-weight: 700; }
+.journey { display: flex; align-items: center; justify-content: space-between; padding: 20px 5px; }
+.journey label { font-size: 11px; color: #6b7e57; }
+.journey strong { font-size: 25px; letter-spacing: -1px; color: #516d3d; font-variant-numeric: tabular-nums; }
+.journey span { font-size: 11px; font-weight: 400; color: #6e7f5c; margin-left: 6px; }
+.save-card { background: linear-gradient(130deg, #e0e9c8, #eaf0d9); border: 1px solid #c8d7ac; border-radius: 17px; padding: 19px; position: relative; }
+.save-card h2 { font-size: 13px; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+.save-card .icon { width: 18px; height: 18px; }
+.save-card p { font-size: 11px; line-height: 1.9; color: #677b53; margin: 0 0 15px; }
+.save-actions { display: flex; gap: 8px; }
+.save-actions button { min-height: 41px; padding: 10px 7px; border: 1px solid #c3d1a8; border-radius: 10px; font-size: 12px; background: #f9fbef; flex: 1; transition: filter .15s; }
+.save-actions button:first-child { background: #617f46; color: #fff; border-color: #617f46; box-shadow: 0 2px 0 #4e6b35; }
+.save-local { text-align: center; font-size: 10px; color: #72855f; margin-top: 12px; line-height: 1.8; }
+.footer { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; text-align: center; padding: 12px 16px 21px; color: #7c8b6a; font-size: 10px; letter-spacing: .7px; }
+.footer .icon { width: 13px; height: 13px; }
+.credits { font-size: inherit; }
+.credits a { color: inherit; text-decoration-color: #a8b795; text-underline-offset: 3px; }
+.credits a:focus-visible { outline: 3px solid #7d994f; outline-offset: 3px; border-radius: 3px; }
+.floating-grass { position: fixed; bottom: 0; left: 0; width: 100%; height: 120px; pointer-events: none; color: #c0d39f; z-index: -1; }
+.busy-cover { position: absolute; inset: 0; background: #eef3def2; border-radius: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 17px; z-index: 500; color: #566f41; font-size: 13px; }
+.spinner { width: 31px; height: 31px; border: 3px solid #d2dfb8; border-top-color: #79995a; border-radius: 50%; animation: spin 1s linear infinite; }
+.busy-cover small { font-size: 11px; color: #768762; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; top: 23px; left: 50%; transform: translate(-50%, -12px); opacity: 0; background: #324f39f5; border: 1px solid #627e50; box-shadow: 0 6px 22px #24442b22; color: #fffdf0; padding: 12px 20px; border-radius: 13px; font-size: 12px; transition: .2s; z-index: 30000; pointer-events: none; max-width: min(440px, 90vw); text-align: center; line-height: 1.7; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+dialog { border: 1px solid #d2ddbc; background: #fffef6; color: var(--ink); border-radius: 23px; box-shadow: 0 24px 90px #253a3b30; width: min(540px, calc(100% - 30px)); padding: 28px; max-height: min(88dvh, 850px); overflow: auto; overscroll-behavior: contain; }
+dialog::backdrop { background: #253f3659; backdrop-filter: blur(7px); }
+.modal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 15px; }
+.modal-top h2 { font-size: 20px; margin: 0; letter-spacing: 1px; }
+.close-button { background: #edf2df; border: 1px solid #dce5c9; border-radius: 12px; width: 38px; height: 38px; display: grid; place-items: center; font-size: 23px; color: #71845a; flex-shrink: 0; }
+.modal-description { font-size: 13px; line-height: 1.9; color: #6b7d59; margin: 0 0 18px; }
+.field-label { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; margin: 18px 0 9px; gap: 10px; }
+.copy-small { font-size: 11px; background: #e9f0d9; padding: 8px 11px; border-radius: 8px; color: #5d7844; min-height: 32px; }
+textarea, input.code-input { width: 100%; border: 1px solid #ccd8b4; background: #f4f7e9; border-radius: 11px; padding: 12px; color: #4f6a3b; font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 1.8; resize: vertical; overflow-wrap: anywhere; word-break: break-all; min-width: 0; }
+textarea { min-height: 94px; }
+.seed-output { min-height: 64px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+.primary, .secondary { min-height: 44px; padding: 13px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; }
+.primary { background: #617f46; color: #fffef5; box-shadow: 0 3px 0 #4c6934; }
+.primary:disabled { opacity: .55; }
+.secondary { background: #eaf0db; color: #60794b; border: 1px solid #d9e2c5; }
+.modal-actions > * { flex: 1; }
+.security-note { font-size: 11px; line-height: 1.9; color: #817c5c; margin: 17px 0 0; background: #f5f1e3; border-radius: 10px; padding: 11px 13px; }
+.capacity-note { font-size: 11px; color: #738160; line-height: 1.9; margin-top: 13px; }
+.error-message { font-size: 12px; color: #a45d40; line-height: 1.8; margin-top: 10px; min-height: 18px; }
+.result-art { width: 120px; height: 110px; margin: 2px auto 13px; background: #eef3dc; border-radius: 50%; }
+.result-body { text-align: center; }
+.result-body h2 { font-size: 25px; letter-spacing: 1px; margin: 10px 0; }
+.result-body p { font-size: 13px; line-height: 1.9; color: #70845b; }
+.result-body .modal-actions { margin-top: 24px; }
+.particle { position: fixed; pointer-events: none; z-index: 20001; width: 7px; height: 7px; border-radius: 3px; }
+.help-list { font-size: 13px; line-height: 2; padding-left: 20px; color: #6c8058; }
+.help-list li { margin-bottom: 9px; }
+.modal-meta { font-size: 11px; color: #788767; margin-top: 10px; }
+.mobile-save { display: none; }
+.mobile-save-state { display: inline-flex; align-items: center; gap: 5px; font-size: 9px; color: #70855a; white-space: nowrap; }
+.mobile-save-state:before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.game-state[data-state="lost"] { color: #a06c43; }
+.game-state[data-state="lost"]:before { background: #b58457; }
+.self-test { min-height: 32px; font-size: 10px; padding: 5px; background: transparent; color: #718261; text-decoration: underline; text-underline-offset: 3px; }
+.save-status-error { color: #a26945 !important; }
+body.in-operation .board, body.in-operation .tray-items, body.in-operation .reserve { pointer-events: none; }
+@media (hover: hover) {
+  .text-button:not(:disabled):hover { background: #e4ebd5; color: #3f5d31; }
+  .tool:not(:disabled):hover { background: #fffffa; transform: translateY(-2px); box-shadow: 0 5px 0 #cbd8b0; }
+  .tile:not(.blocked):not(:disabled):hover { filter: brightness(1.06); }
+  .save-actions button:hover, .primary:hover { filter: brightness(1.06); }
+  .secondary:hover, .copy-small:hover, .close-button:hover { background: #e2ebcd; }
+}
+@media (min-width: 761px) and (max-height: 950px) {
+  .site-header { padding-top: 15px; padding-bottom: 10px; }
+  .intro { padding-top: 0; padding-bottom: 18px; }
+  .intro h1 { font-size: 26px; }
+  .eyebrow { margin-bottom: 6px; }
+  .board-wrap { max-width: 344px; }
+  .game-panel { padding-top: 14px; }
+}
+@media (max-width: 760px) {
+  .site-header { padding: 12px 18px 7px; }
+  .brand { gap: 8px; }
+  .brand-sheep { width: 38px; height: 38px; border-radius: 12px; }
+  .brand-name { font-size: 18px; letter-spacing: 2px; }
+  .brand-sub { font-size: 7px; letter-spacing: 2.4px; margin-top: 3px; }
+  .top-actions { gap: 4px; }
+  .top-actions .text-button { min-height: 44px; min-width: 44px; padding: 10px; background: #f9fbef; border: 1px solid #d7e1c4; border-radius: 12px; }
+  .top-actions .text-button span, .offline { display: none; }
+  .top-actions .icon { width: 20px; height: 20px; }
+  .intro { padding: 5px 12px 15px; }
+  .eyebrow { display: none; }
+  .intro h1 { font-size: 21px; letter-spacing: 1px; margin: 0; }
+  .intro h1 span:after { height: 7px; }
+  .intro p { display: none; }
+  .main-layout { display: block; max-width: 530px; padding: 0 14px 10px; }
+  .game-panel { padding: 13px 14px 9px; border-radius: 21px; box-shadow: 0 5px 0 #d6e0be, 0 12px 28px #475b251c, inset 0 1px 0 #fff; }
+  .game-top { gap: 8px; }
+  .level-chip { font-size: 12px; padding: 9px 11px; border-radius: 10px; }
+  .game-state { font-size: 10px; gap: 5px; }
+  .remaining { font-size: 10px; }
+  .remaining strong { font-size: 22px; margin-right: 4px; }
+  .progress-row { margin-top: 10px; gap: 9px; }
+  .harvest-label { font-size: 10px; }
+  .board-wrap { margin-top: 7px; max-width: 384px; }
+  .tile { border-radius: 8px; padding: 3px; box-shadow: 0 3px 0 #a4b97d, 0 4px 6px #36502520; }
+  .tile:after { border-radius: 8px; }
+  .tile:before { inset: 2px; border-radius: 5px; }
+  .tray-caption { margin-top: 7px; margin-bottom: 7px; font-size: 10px; }
+  .tray-caption strong { font-size: 11px; gap: 6px; }
+  #tray-count { padding: 3px 5px; }
+  #tray-tip { text-align: right; }
+  .tray { gap: 4px; border-radius: 11px; padding: 6px; }
+  .tray-items { inset: 6px; }
+  .slot { border-radius: 7px; }
+  .reserve-row { margin-top: 9px; gap: 9px; min-height: 24px; }
+  .reserve-label { font-size: 10px; }
+  .reserve-empty { font-size: 10px; }
+  .reserve-hint { font-size: 9px; }
+  .tools { margin-top: 9px; gap: 8px; }
+  .tool { padding: 10px 9px 8px; grid-template-columns: 19px 1fr; grid-template-rows: 21px 16px; column-gap: 7px; border-radius: 11px; min-height: 61px; }
+  .tool .icon { width: 20px; height: 20px; grid-row: 1; }
+  .tool-title { font-size: 12px; letter-spacing: 1px; }
+  .tool-caption { grid-column: 1 / -1; text-align: center; font-size: 10px; }
+  .tool-count { font-size: 8px; right: 6px; top: 5px; }
+  .game-bottom { margin-top: 8px; gap: 10px; }
+  .game-bottom .text-button { min-height: 32px; font-size: 10px; padding: 7px 8px; }
+  .game-bottom .icon { width: 15px; height: 15px; }
+  .side-panel { display: none; }
+  .mobile-save { display: flex; align-items: center; justify-content: center; gap: 13px; margin: 10px auto 0; padding: 0 14px; }
+  .mobile-save .text-button { min-height: 42px; font-size: 11px; padding: 9px 13px; background: #f8faef; border: 1px solid #d3dfbf; border-radius: 11px; }
+  .footer { padding: 5px 12px calc(11px + env(safe-area-inset-bottom)); font-size: 9px; letter-spacing: 0; gap: 5px; }
+  .self-test { font-size: 9px; }
+  .footer .icon { width: 11px; height: 11px; }
+  .toast { top: 65px; padding: 10px 15px; font-size: 11px; width: max-content; max-width: 88vw; border-radius: 11px; }
+  dialog { padding: 20px; border-radius: 20px; max-height: 88dvh; }
+  .modal-top h2 { font-size: 18px; }
+  .close-button { width: 44px; height: 44px; }
+  .modal-description, .help-list { font-size: 12px; }
+  textarea, input.code-input { font-size: 16px; line-height: 1.7; }
+  .field-label { font-size: 12px; }
+  .primary, .secondary { padding: 12px 9px; font-size: 12px; }
+  .result-body h2 { font-size: 22px; }
+  .security-note { font-size: 11px; padding: 10px; }
+}
+@media (max-width: 360px) {
+  .site-header { padding-inline: 12px; }
+  .main-layout { padding-inline: 10px; }
+  .game-panel { padding-inline: 11px; }
+  .intro h1 { font-size: 19px; }
+  .game-state { display: none; }
+  .remaining { margin-left: auto; }
+  .tray-caption { font-size: 9px; }
+  .tray-caption strong { font-size: 10px; }
+  .reserve-hint { display: none; }
+  .tool { padding-inline: 7px; column-gap: 5px; }
+  .tool-caption { font-size: 9px; }
+  .game-bottom { gap: 5px; }
+  .footer > span:first-of-type { font-size: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *:before, *:after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true"><defs>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M8 4 3 9l5 5M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+<symbol id="i-move" viewBox="0 0 24 24"><path d="M8 4H4v16h16v-6M12 12 21 3m-7 0h7v7"/></symbol>
+<symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 5h3c5 0 7 14 12 14h3M17 15l4 4-4 4M3 19h3c2 0 4-4 6-7m3-6c1-1 2-1 3-1h3m-4-4 4 4-4 4"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 8.4a2.5 2.5 0 0 1 4.8 1c0 2-2.4 2-2.4 4M12 17h.01"/></symbol>
+<symbol id="i-new" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></symbol>
+<symbol id="i-restart" viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 1 7M3 4v6h6"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M6 3h12l3 3v15H3V3h3Z M7 3v6h10V3M7 21v-8h10v8"/></symbol>
+<symbol id="i-restore" viewBox="0 0 24 24"><path d="M4 14v7h16v-7M12 3v12M7 10l5 5 5-5"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 3C7 2 1 8 6 15s16 3 14-12ZM3 22 16 8"/></symbol>
+<symbol id="sheep" viewBox="0 0 180 160"><ellipse cx="90" cy="142" rx="55" ry="8" fill="#b8ca9a" opacity=".35"/><path d="m61 119-4 17q7 9 15 0l2-17m36 0 3 17q8 9 15 0l-5-20" fill="#596149"/><g fill="#fffdf0" stroke="#d7dec5" stroke-width="2"><circle cx="55" cy="84" r="25"/><circle cx="65" cy="62" r="23"/><circle cx="90" cy="56" r="25"/><circle cx="115" cy="62" r="23"/><circle cx="128" cy="84" r="25"/><circle cx="115" cy="108" r="25"/><circle cx="88" cy="113" r="27"/><circle cx="63" cy="105" r="23"/></g><ellipse cx="91" cy="91" rx="38" ry="37" fill="#fffdf0"/><path d="M65 67Q39 51 39 72q4 15 24 10M118 67q26-16 26 5-4 15-24 10" fill="#aaa88c"/><path d="M69 65q22-15 44 0l5 26q-3 29-26 33-24-4-27-33Z" fill="#d8ccb0"/><path d="M68 65q-5-22 12-18 11-14 20 0 16-5 17 17-8 11-17 1-9 11-17 0-9 9-15 0" fill="#fffef4"/><path d="M78 88v5m27-5v5" stroke="#4a5140" stroke-width="4" stroke-linecap="round"/><ellipse cx="71" cy="102" rx="7" ry="4" fill="#e6bda3"/><ellipse cx="111" cy="102" rx="7" ry="4" fill="#e6bda3"/><path d="m87 103 5 4 5-4m-5 4v6m-7-2q7 9 14 0" fill="none" stroke="#706b53" stroke-width="2" stroke-linecap="round"/><path d="m129 115 12-11m-8 13 15-2m-8-11 4-8" stroke="#97ae6b" stroke-width="2.5" stroke-linecap="round"/></symbol>
+<!-- Original vector illustrations drawn for this game. -->
+<symbol id="p0" viewBox="0 0 64 64"><path d="M35 23Q49 5 53 10L43 27Q60 17 59 24L43 32" fill="#75a955" stroke="#568342" stroke-width="2.5" stroke-linejoin="round"/><path d="M34 23q12-4 14 10T13 57q-4-4 8-25Z" fill="#ed9b4c" stroke="#bd7538" stroke-width="2.5"/><path d="m25 34 6 4m3-9 6 4m-21 11 5 3" stroke="#c77a38" stroke-width="2.5" stroke-linecap="round"/><path d="m29 29-9 15" stroke="#ffd39a" stroke-width="3" stroke-linecap="round"/></symbol>
+<symbol id="p1" viewBox="0 0 64 64"><path d="M19 41Q15 10 32 7q16 3 14 34L31 57Z" fill="#ebc557" stroke="#c5a13e" stroke-width="2.5"/><path d="M22 16h19m-20 8h22m-23 8h23m-22 8h21M28 11v34m8-34v34" stroke="#fff0a0" stroke-width="2.7"/><path d="M11 30q22 3 21 29Q11 55 11 30ZM53 29Q32 34 31 59q23-8 22-30Z" fill="#83ad60" stroke="#5f8a48" stroke-width="2.5"/><path d="m16 37 13 16m18-17L35 53" stroke="#a9c97e" stroke-width="2"/></symbol>
+<symbol id="p2" viewBox="0 0 64 64"><path d="M15 49Q1 37 12 23q-1-16 15-15 13-6 19 8 17 0 12 17 8 17-13 23Z" fill="#94b969" stroke="#618b4e" stroke-width="2.5"/><path d="M16 29Q8 40 26 54l14-1q17-18 8-27-10-11-16 5-11-17-16-2" fill="#c9d797" stroke="#82a362" stroke-width="2"/><path d="m31 55 1-30m0 18L21 33m11 12 11-12" stroke="#f4efcf" stroke-width="3" stroke-linecap="round"/></symbol>
+<symbol id="p3" viewBox="0 0 64 64"><path d="m25 31-4 23q10 9 23-1l-5-24Z" fill="#f0e4c7" stroke="#c8b996" stroke-width="2.5"/><path d="M7 34Q6 11 31 8q24 1 26 26Q35 46 7 34Z" fill="#ce7961" stroke="#a65e4b" stroke-width="2.5"/><ellipse cx="23" cy="21" rx="6" ry="5" fill="#fff0d8"/><ellipse cx="43" cy="28" rx="5" ry="4" fill="#fff0d8"/><circle cx="14" cy="31" r="3" fill="#fff0d8"/><path d="M29 44v8" stroke="#fff9e6" stroke-width="3" stroke-linecap="round"/></symbol>
+<symbol id="p4" viewBox="0 0 64 64"><path d="M31 21q-1-9 3-14" stroke="#796546" stroke-width="3" stroke-linecap="round"/><path d="M35 16q1-12 15-9-3 12-15 9Z" fill="#85a85e" stroke="#60894c" stroke-width="2"/><path d="M32 23Q13 13 9 31q-4 21 15 26l8-2 8 2q19-5 15-26-4-18-23-8Z" fill="#d7836e" stroke="#b46d58" stroke-width="2.5"/><path d="M17 29q-5 8 0 15" fill="none" stroke="#f3b6a0" stroke-width="4" stroke-linecap="round"/></symbol>
+<symbol id="p5" viewBox="0 0 64 64"><path d="M31 27Q16 12 20 5q13 1 15 18Q36 8 46 6q4 12-10 23" fill="#8eaf67" stroke="#638b4c" stroke-width="2.5"/><path d="M14 33q3-13 18-10 22-3 20 15Q49 54 29 59q-3-3 1-9-16 1-16-17" fill="#fbefda" stroke="#c6c49a" stroke-width="2.5"/><path d="M15 35q18 9 35-1" fill="none" stroke="#caa6b2" stroke-width="5"/><path d="m20 42 6 1" stroke="#d9cbbc" stroke-width="2" stroke-linecap="round"/></symbol>
+<symbol id="p6" viewBox="0 0 64 64"><path d="M43 19Q47 42 29 54 14 63 8 52q-1-6 8-9 16-5 14-25Z" fill="#9482b2" stroke="#705f91" stroke-width="2.5"/><path d="m27 19 2-10 7 4 7-5 1 10 9 7-14 3-3-7-9 3Z" fill="#87a96a" stroke="#648951" stroke-width="2"/><path d="M29 33Q25 45 16 48" stroke="#bcaad1" stroke-width="3.5" fill="none" stroke-linecap="round"/></symbol>
+<symbol id="p7" viewBox="0 0 64 64"><path d="M33 15q-2-8 3-12" stroke="#8b7751" stroke-width="3" stroke-linecap="round"/><path d="M36 13Q42 1 53 8q-6 12-17 5Z" fill="#8fa86a" stroke="#69874e" stroke-width="2"/><path d="M24 21q2-11 12-6 8 3 8 13 16 10 10 24-7 10-25 8Q6 59 9 43q1-9 10-14Z" fill="#d2c471" stroke="#a79c54" stroke-width="2.5"/><path d="M22 34q-7 7-5 13" stroke="#f1e6a8" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="41" cy="49" r="1.3" fill="#ae9c57"/></symbol>
+<symbol id="p8" viewBox="0 0 64 64"><path d="M30 18q-7-11 4-12l6 4" fill="none" stroke="#819551" stroke-width="5" stroke-linecap="round"/><path d="M32 24Q20 10 10 26q-10 21 7 29 7 5 15 0 8 5 15 0 17-8 7-29-10-16-22-2Z" fill="#d99d58" stroke="#b07c41" stroke-width="2.5"/><ellipse cx="32" cy="39" rx="11" ry="18" fill="#e8b367" stroke="#bc8a47" stroke-width="2"/><path d="M19 27q-9 16 0 25m26-25q9 16 0 25" fill="none" stroke="#edbd7b" stroke-width="2.5"/></symbol>
+<symbol id="p9" viewBox="0 0 64 64"><path d="M36 22q0-16 14-15" fill="none" stroke="#729851" stroke-width="4" stroke-linecap="round"/><path d="M28 21q12-5 16 6 3 23-32 31-4 0 0-4 20-14 11-26Z" fill="#ce7c65" stroke="#a75f4c" stroke-width="2.5"/><path d="m24 22 9-6 10 5 4 9-12-3-6 6Z" fill="#8ba767" stroke="#65834d" stroke-width="2"/><path d="M32 33q-1 11-10 17" stroke="#edb298" stroke-width="3" fill="none" stroke-linecap="round"/></symbol>
+<symbol id="p10" viewBox="0 0 64 64"><path d="M32 32v27m0-9Q13 52 13 42q13-3 19 8m0-8q17 1 19-10-13-1-19 10" fill="#95b572" stroke="#6c9654" stroke-width="2.5"/><g fill="#fcf5da" stroke="#d5caa0" stroke-width="1.8"><ellipse cx="32" cy="13" rx="7" ry="12"/><ellipse cx="32" cy="36" rx="7" ry="12"/><ellipse cx="20" cy="24" rx="12" ry="7"/><ellipse cx="44" cy="24" rx="12" ry="7"/><ellipse cx="24" cy="16" rx="7" ry="10" transform="rotate(-45 24 16)"/><ellipse cx="41" cy="33" rx="7" ry="10" transform="rotate(-45 41 33)"/></g><circle cx="32" cy="24" r="9" fill="#e5c15e" stroke="#bba24b" stroke-width="2"/></symbol>
+<symbol id="p11" viewBox="0 0 64 64"><path d="M34 19q-3-12 5-14" fill="none" stroke="#887044" stroke-width="4" stroke-linecap="round"/><path d="M13 29q-2 22 19 29 22-7 20-29Z" fill="#bd9768" stroke="#926f4c" stroke-width="2.5"/><path d="M9 30q2-20 23-20 21 0 23 20-22 10-46 0Z" fill="#8e9d66" stroke="#6c7e4e" stroke-width="2.5"/><path d="m19 17 6 16m6-21 2 22m8-20-2 19m9-12-4 11m-30-8 38-2" stroke="#b5bf8a" stroke-width="2"/><path d="M22 40q0 7 6 10" fill="none" stroke="#dfbc90" stroke-width="3" stroke-linecap="round"/></symbol>
+</defs></svg>
+<header class="site-header"><div class="brand"><svg class="brand-sheep" aria-hidden="true"><use href="#sheep"/></svg><div><div class="brand-name">咩咩田园</div><div class="brand-sub">MEADOW MATCH</div></div></div><nav class="top-actions" aria-label="游戏菜单"><div class="offline">离线也能玩</div><button class="text-button" id="help-btn"><svg class="icon"><use href="#i-help"/></svg><span>玩法说明</span></button><button class="text-button" id="new-btn"><svg class="icon"><use href="#i-new"/></svg><span>新建旅程</span></button></nav></header>
+<section class="intro"><div class="eyebrow">A LITTLE BREAK IN THE MEADOW</div><h1>今天，也来<span>放松一下。</span></h1><p>三张一组，慢慢收集你的好心情。</p></section>
+<main class="main-layout"><section class="game-panel" aria-label="三消游戏"><div class="game-top"><span class="level-chip" id="level-label">第 01 关</span><span class="game-state" id="state-label" aria-live="polite">正在准备</span><div class="remaining"><strong id="remaining-label">--</strong>张待收集</div></div>
+<div class="progress-row"><div class="harvest-progress" id="harvest-progress" role="progressbar" aria-label="本关消除进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="harvest-fill" id="harvest-fill"></div></div><span class="harvest-label" id="harvest-label">已收好 0%</span></div>
+<div class="board-wrap"><div class="board" id="board" aria-label="方块棋盘"><svg class="field-art" viewBox="0 0 420 400" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="m29 78-3-9m3 9 5-8m-5 8-8-5M389 295l-2-10m2 10 5-8m-5 8-7-4M57 346v-10m0 10 5-7m-5 7-6-5M359 57l-1-8m1 8 4-6M191 382l-1-8m1 8 5-6"/><path d="M20 239q13-5 22 0m329-68q12-5 24 0" stroke-dasharray="2 5"/><circle cx="83" cy="66" r="2"/><circle cx="343" cy="353" r="2"/></g></svg></div></div>
+<div class="tray-caption"><strong>收集槽 <span id="tray-count">0 / 7</span></strong><span id="tray-tip">三个相同图案，自动消除</span></div><div class="tray" id="tray"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="tray-items" id="tray-items" aria-label="七格收集槽"></div></div>
+<div class="reserve-row" id="reserve-row" data-empty="true"><span class="reserve-label">备用区</span><span class="reserve-empty">移出的方块会暂存在这里</span><div class="reserve" id="reserve" role="group" aria-label="备用区域，点击方块收回"><div class="reserve-slot"></div><div class="reserve-slot"></div><div class="reserve-slot"></div></div><span class="reserve-hint">点一下方块<br>就能收回来</span></div>
+<div class="tools"><button class="tool" id="undo-btn"><span class="tool-count" id="undo-count">×1</span><svg class="icon"><use href="#i-undo"/></svg><span class="tool-title">撤回</span><span class="tool-caption">回到上一步</span></button><button class="tool" id="move-btn"><span class="tool-count" id="move-count">×1</span><svg class="icon"><use href="#i-move"/></svg><span class="tool-title">移出</span><span class="tool-caption">腾出三个位置</span></button><button class="tool" id="shuffle-btn"><span class="tool-count" id="shuffle-count">×1</span><svg class="icon"><use href="#i-shuffle"/></svg><span class="tool-title">洗牌</span><span class="tool-caption">换一种可能</span></button></div>
+<div class="game-bottom"><button class="text-button" id="restart-btn"><svg class="icon"><use href="#i-restart"/></svg>重新开始</button><span class="divider"></span><button class="text-button" id="board-info-btn"><svg class="icon"><use href="#i-leaf"/></svg>本关信息</button><button class="text-button" id="next-btn" hidden>下一关 →</button></div>
+<div class="busy-cover" id="busy-cover"><div class="spinner"></div><span id="busy-label">小羊正在种下一片田园…</span><small>每一关，都是新长出来的。</small></div>
+</section>
+<aside class="side-panel"><div class="side-heading">田园休息站</div><div class="mascot-area"><svg aria-hidden="true" viewBox="0 0 180 160"><use href="#sheep"/></svg></div><p class="speech" id="sheep-speech">别着急，慢慢来。</p><p class="speech-sub" id="sheep-hint">小羊会一直陪着你 ♡</p><section class="guide"><h2>三个刚刚好</h2><div class="rule"><span class="rule-num">01</span><span>点选<b>没有被遮挡</b>的方块</span></div><div class="rule"><span class="rule-num">02</span><span>收集<b>三个相同图案</b>，一起消除</span></div><div class="rule"><span class="rule-num">03</span><span>留意七格槽，<b>别让它装满</b></span></div></section><div class="journey"><label>已经走过的田园</label><strong id="cleared-label">0<span>关</span></strong></div><section class="save-card"><h2><svg class="icon"><use href="#i-save"/></svg>把这片田园带走</h2><p>种子 + 加密存档码<br>换个设备，从这一刻接着玩。</p><div class="save-actions"><button id="export-btn">导出存档</button><button id="restore-btn">恢复存档</button></div></section><div class="save-local" id="save-status" aria-live="polite">进度会自动保存在此设备</div></aside></main>
+<div class="mobile-save"><button class="text-button" id="export-mobile"><svg class="icon"><use href="#i-save"/></svg>导出存档</button><button class="text-button" id="restore-mobile"><svg class="icon"><use href="#i-restore"/></svg>恢复存档</button><span class="mobile-save-state" id="mobile-save-state" aria-live="polite">自动保存</span></div><footer class="footer"><svg class="icon"><use href="#i-leaf"/></svg><span>原创田园 · 每一关都是新风景</span><span> / </span><button class="self-test" id="self-test-btn">运行自检</button><span class="credits">© 2026 wujiahaocoder · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="license noopener noreferrer">CC BY 4.0</a></span><span id="mobile-save-status"></span></footer>
+<svg class="floating-grass" viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100V69q30 12 52-4t62 5 68-4 73 6 76-4 67 8 75-5 83 3 71-8 84 7 78-5 75 7 82-8 67 9 70-7 85 7 79-4 83 5 83-7 72 5v25Z" fill="currentColor" opacity=".22"/><g stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"><path d="m70 90-3-21m3 21 8-15m-8 15-12-9M1290 94l-2-28m2 28 13-19m-13 19-12-13M126 92l2-10m-2 10-5-7M1370 89l-2-12m2 12 6-8"/></g></svg>
+<div class="toast" id="toast" role="status"></div>
+<dialog id="modal" aria-labelledby="modal-title"></dialog>
+<script id="engine-code">(function (root, factory) {
+  'use strict';
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.MeadowEngine = api;
+})(typeof globalThis !== 'undefined' ? globalThis : self, function () {
+  'use strict';
+  const VERSION = 1, TILE_SIZE = 52, WIDTH = 420, HEIGHT = 400;
+  const PLACES = ['board', 'tray', 'reserve', 'gone'];
+  const copy = x => JSON.parse(JSON.stringify(x));
+  const integer = n => Number.isSafeInteger(n);
+  function random(seed) {
+    // Four independent FNV-style lanes seed sfc32; never used for cryptography.
+    const words = [2166136261, 3335557771, 1779033703, 3144134277];
+    const str = String(seed);
+    for (let i = 0; i < str.length; i++) {
+      for (let k = 0; k < 4; k++) {
+        words[k] = Math.imul(words[k] ^ (str.charCodeAt(i) + k * 97), 16777619);
+        words[k] ^= words[k] >>> 13;
+      }
+    }
+    let [a, b, c, d] = words.map(x => x >>> 0);
+    const next = () => {
+      a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
+      const t = (a + b + d) | 0;
+      d = (d + 1) | 0; a = b ^ (b >>> 9);
+      b = (c + (c << 3)) | 0; c = ((c << 21) | (c >>> 11));
+      c = (c + t) | 0;
+      return (t >>> 0) / 4294967296;
+    };
+    for (let i = 0; i < 20; i++) next();
+    return next;
+  }
+  function shuffled(array, rng) {
+    const out = array.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+  function overlaps(a, b) {
+    return a.x < b.x + TILE_SIZE && a.x + TILE_SIZE > b.x &&
+      a.y < b.y + TILE_SIZE && a.y + TILE_SIZE > b.y;
+  }
+  function blockers(layout) {
+    const out = layout.tiles.map(() => []);
+    for (const a of layout.tiles) for (const b of layout.tiles) {
+      if (b.z > a.z && overlaps(a, b)) out[a.id].push(b.id);
+    }
+    return out;
+  }
+  function isAvailable(layout, game, id) {
+    if (!integer(id) || id < 0 || id >= layout.tiles.length) return false;
+    if (game.places[id] === 'reserve') return true;
+    if (game.places[id] !== 'board') return false;
+    const a = layout.tiles[id];
+    return !layout.tiles.some(b => game.places[b.id] === 'board' && b.z > a.z && overlaps(a, b));
+  }
+  function createGame(layout) {
+    return {
+      places: layout.tiles.map(() => 'board'), types: layout.tiles.map(t => t.type),
+      tray: [], reserve: [], tools: { undo: 1, move: 1, shuffle: 1 }, status: 'playing', undo: null
+    };
+  }
+  function snapshot(game) {
+    return {
+      places: game.places.slice(), types: game.types.slice(), tray: game.tray.slice(),
+      reserve: game.reserve.slice(), tools: { ...game.tools }, status: game.status
+    };
+  }
+  function pick(layout, game, id) {
+    if (game.status !== 'playing' || game.tray.length >= 7 || !isAvailable(layout, game, id))
+      return { ok: false, matched: [] };
+    game.undo = snapshot(game);
+    if (game.places[id] === 'reserve') game.reserve.splice(game.reserve.indexOf(id), 1);
+    game.places[id] = 'tray';
+    const type = game.types[id];
+    let index = game.tray.length;
+    for (let i = game.tray.length - 1; i >= 0; i--) if (game.types[game.tray[i]] === type) {
+      index = i + 1; break;
+    }
+    game.tray.splice(index, 0, id);
+    const group = game.tray.filter(t => game.types[t] === type);
+    const matched = group.length >= 3 ? group.slice(0, 3) : [];
+    if (matched.length) {
+      const gone = new Set(matched);
+      game.tray = game.tray.filter(t => !gone.has(t));
+      for (const t of matched) game.places[t] = 'gone';
+    }
+    if (game.places.every(p => p === 'gone')) game.status = 'won';
+    else if (game.tray.length >= 7) game.status = 'lost';
+    return { ok: true, matched, index, status: game.status };
+  }
+  function takeOut(layout, game) {
+    if (game.status !== 'playing' || !game.tools.move || !game.tray.length) return { ok: false, moved: [] };
+    game.undo = snapshot(game);
+    const moved = game.tray.splice(0, 3);
+    for (const id of moved) game.places[id] = 'reserve';
+    game.reserve.push(...moved);
+    game.tools.move = 0;
+    return { ok: true, moved };
+  }
+  function shuffle(layout, game, rngSeed) {
+    const ids = layout.tiles.filter(t => game.places[t.id] === 'board').map(t => t.id);
+    if (game.status !== 'playing' || !game.tools.shuffle || ids.length < 2) return { ok: false };
+    game.undo = snapshot(game);
+    const types = shuffled(ids.map(id => game.types[id]), random(String(rngSeed) + '|shuffle-v1'));
+    for (let i = 0; i < ids.length; i++) game.types[ids[i]] = types[i];
+    game.tools.shuffle = 0;
+    return { ok: true, ids };
+  }
+  function undo(layout, game) {
+    if (!game.tools.undo || !game.undo) return { ok: false };
+    const before = snapshot(game), prior = game.undo;
+    Object.assign(game, copy(prior));
+    game.tools = {
+      undo: 0, move: Math.min(before.tools.move, prior.tools.move),
+      shuffle: Math.min(before.tools.shuffle, prior.tools.shuffle)
+    };
+    game.undo = null;
+    return { ok: true };
+  }
+  function canonical(layout) {
+    const ordered = layout.tiles.slice().sort((a, b) => a.z - b.z || a.y - b.y || a.x - b.x || a.type - b.type);
+    const indices = new Map(ordered.map((t, i) => [t.id, i]));
+    const graph = blockers(layout);
+    return JSON.stringify({ version: VERSION, size: TILE_SIZE, tiles: ordered.map(t => [
+      t.x, t.y, t.z, t.type, graph[t.id].map(id => indices.get(id)).sort((a, b) => a - b)
+    ]) });
+  }
+  async function fingerprint(layout) {
+    let cryptoAPI = globalThis.crypto;
+    if (!cryptoAPI?.subtle && typeof require === 'function') cryptoAPI = require('node:crypto').webcrypto;
+    if (!cryptoAPI?.subtle) throw new Error('当前环境不支持 SHA-256 安全摘要，无法验证关卡。');
+    const digest = await cryptoAPI.subtle.digest('SHA-256', new TextEncoder().encode(canonical(layout)));
+    return Array.from(new Uint8Array(digest), n => n.toString(16).padStart(2, '0')).join('');
+  }
+  function verifyLayout(layout) {
+    const fail = reason => ({ valid: false, reason });
+    try {
+      if (!layout || layout.version !== VERSION || !integer(layout.level) || layout.level < 1 ||
+        !integer(layout.retry) || layout.retry < 0 || !Array.isArray(layout.tiles) ||
+        layout.tiles.length < 3 || layout.tiles.length > 180 || layout.tiles.length % 3 !== 0)
+        return fail('关卡元数据无效');
+      const n = layout.tiles.length, counts = Array(12).fill(0);
+      for (let i = 0; i < n; i++) {
+        const t = layout.tiles[i];
+        if (!t || t.id !== i || !integer(t.x) || !integer(t.y) || t.x < 0 || t.x > WIDTH - TILE_SIZE ||
+          t.y < 0 || t.y > HEIGHT - TILE_SIZE || !integer(t.z) || t.z < 0 || t.z > 7 ||
+          !integer(t.type) || t.type < 0 || t.type > 11) return fail('方块数据无效');
+        counts[t.type]++;
+        for (let j = 0; j < i; j++) if (layout.tiles[j].z === t.z && overlaps(layout.tiles[j], t))
+          return fail('同层方块交叠');
+      }
+      if (counts.some(n => n % 3)) return fail('图案数量不守恒');
+      if (!Array.isArray(layout.solution) || layout.solution.length !== n ||
+        new Set(layout.solution).size !== n) return fail('通关序列不完整');
+      const game = createGame(layout), graph = blockers(layout);
+      let peak = 0, choicesSum = 0;
+      for (const id of layout.solution) {
+        if (!integer(id) || id < 0 || id >= n || game.places[id] !== 'board' ||
+          graph[id].some(b => game.places[b] === 'board')) return fail('通关序列违反遮挡');
+        choicesSum += layout.tiles.reduce((sum, t) => sum + (game.places[t.id] === 'board' &&
+          !graph[t.id].some(b => game.places[b] === 'board') ? 1 : 0), 0);
+        const result = pick(layout, game, id);
+        if (!result.ok || game.status === 'lost') return fail('通关序列超过七格容量');
+        peak = Math.max(peak, game.tray.length);
+      }
+      if (game.status !== 'won' || game.tray.length || game.reserve.length) return fail('未完全消除');
+      return { valid: true, peak, averageChoices: Math.round(choicesSum / n * 100) / 100,
+        initialChoices: graph.filter(bs => bs.length === 0).length,
+        overlapEdges: graph.reduce((sum, a) => sum + a.length, 0) };
+    } catch (e) { return fail('关卡验证失败'); }
+  }
+  function parameters(level, rng) {
+    const difficulty = Math.log2(level);
+    const total = level === 1 ? 18 : Math.min(162, 72 + 6 * Math.floor(5 * Math.log2(level / 2)));
+    const layers = level === 1 ? 2 : Math.min(8, Math.max(4 + Math.floor(difficulty / 2), Math.ceil(total / 21)));
+    return { total, layers, kinds: level === 1 ? 3 : Math.min(12, 7 + Math.floor(difficulty)),
+      activeTriples: level === 1 ? 1 : Math.min(4, 2 + Math.floor(difficulty / 2)),
+      centers: 1 + Math.floor(rng() * (2 + Math.min(2, difficulty / 6))),
+      density: Math.min(.83, .48 + difficulty * .018),
+      skew: (rng() - .5) * .65, difficulty: Math.round(difficulty * 1000) / 1000 };
+  }
+  function geometry(params, rng) {
+    const n = params.total, layers = params.layers;
+    const centers = Array.from({ length: params.centers }, () => ({
+      x: 65 + rng() * 235, y: 65 + rng() * 220,
+      rx: 95 + rng() * 130, ry: 88 + rng() * 125, weight: .5 + rng() * .5
+    }));
+    const perLayer = Array(layers).fill(0);
+    // Weighted allocation distributes density continuously, rather than selecting a map template.
+    for (let i = 0; i < n; i++) {
+      const eligible = Array.from({ length: layers }, (_, z) => z).filter(z => perLayer[z] < 22);
+      let best = eligible[0], score = Infinity;
+      for (const z of eligible) {
+        const weight = 1 + (layers - 1 - z) * .025;
+        const s = (perLayer[z] + rng() * 1.7) / weight;
+        if (s < score) { score = s; best = z; }
+      }
+      perLayer[best]++;
+    }
+    const tiles = [];
+    const offsetX = (rng() - .5) * 21, offsetY = (rng() - .5) * 21;
+    for (let z = 0; z < layers; z++) {
+      const placed = [];
+      let tries = 0;
+      while (placed.length < perLayer[z] && tries < 32000) {
+        tries++;
+        const x = Math.floor(rng() * (WIDTH - TILE_SIZE + 1));
+        const y = Math.floor(rng() * (HEIGHT - TILE_SIZE + 1));
+        let field = .12;
+        for (const c of centers) {
+          const dx = (x - c.x - z * offsetX) / c.rx;
+          const dy = (y - c.y - z * offsetY - params.skew * (x - 184)) / c.ry;
+          field += c.weight * Math.exp(-2.1 * (dx * dx + dy * dy));
+        }
+        if (rng() > Math.min(.95, field * (1.1 - params.density * .25))) continue;
+        const t = { id: tiles.length, x, y, z, type: 0 };
+        if (placed.some(b => overlaps(t, b))) continue;
+        placed.push(t); tiles.push(t);
+      }
+      if (placed.length !== perLayer[z]) throw new Error('布局采样预算耗尽');
+    }
+    return tiles;
+  }
+  function topologicalSequence(tiles, rng, difficulty) {
+    const graph = blockers({ tiles });
+    const removed = new Set(), sequence = [];
+    while (sequence.length < tiles.length) {
+      const choices = tiles.filter(t => !removed.has(t.id) && graph[t.id].every(id => removed.has(id)));
+      if (!choices.length) throw new Error('遮挡结构出现环');
+      // Alternating local/remote choices spreads related types between overlapping regions.
+      const last = sequence.length ? tiles[sequence[sequence.length - 1]] : null;
+      let chosen;
+      if (last && difficulty > 1 && rng() < .6) {
+        const scored = choices.map(t => ({ t, s: rng() * 140 + Math.hypot(t.x - last.x, t.y - last.y) }));
+        scored.sort((a, b) => b.s - a.s); chosen = scored[0].t;
+      } else chosen = choices[Math.floor(rng() * choices.length)];
+      removed.add(chosen.id); sequence.push(chosen.id);
+    }
+    return sequence;
+  }
+  function assignTypes(tiles, sequence, params, rng) {
+    const usage = Array(params.kinds).fill(0), active = [];
+    let groups = tiles.length / 3, occupancy = 0;
+    for (let i = 0; i < sequence.length; i++) {
+      let chosen;
+      const canOpen = groups > 0 && active.length < params.activeTriples && occupancy < 5;
+      const easyFirst = params.total === 18 && i < 6;
+      if (!active.length || (canOpen && !easyFirst && rng() < .73)) {
+        const available = usage.map((n, type) => ({ n, type, score: n + rng() * .9 }))
+          .filter(o => !active.some(a => a.type === o.type)).sort((a, b) => a.score - b.score);
+        chosen = { type: available[0].type, seen: 0 };
+        usage[chosen.type]++; active.push(chosen); groups--;
+      } else {
+        const candidates = active.filter(a => occupancy < 6 || a.seen === 2);
+        if (!candidates.length) throw new Error('构造容量预算失败');
+        chosen = candidates[Math.floor(rng() * candidates.length)];
+      }
+      tiles[sequence[i]].type = chosen.type;
+      chosen.seen++; occupancy++;
+      if (chosen.seen === 3) { occupancy -= 3; active.splice(active.indexOf(chosen), 1); }
+    }
+    if (active.length || occupancy || groups) throw new Error('三消构造未闭合');
+  }
+  async function generate(seed, level, retry = 0) {
+    if (typeof seed !== 'string' || !/^\d{1,78}$/.test(seed) || !integer(level) || level < 1 ||
+      !integer(retry) || retry < 0 || retry > 1000000) throw new Error('种子或关卡参数无效');
+    // Bounded work: the host can terminate a Worker independently of this inner budget.
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const rng = random(seed + '|generator:' + VERSION + '|level:' + level + '|retry:' + retry + '|attempt:' + attempt);
+      try {
+        const params = parameters(level, rng);
+        const tiles = geometry(params, rng);
+        const solution = topologicalSequence(tiles, rng, params.difficulty);
+        assignTypes(tiles, solution, params, rng);
+        const layout = { version: VERSION, level, retry, params: { ...params, attempt }, tiles, solution };
+        const metrics = verifyLayout(layout);
+        if (!metrics.valid) continue;
+        layout.params.metrics = metrics;
+        layout.fingerprint = await fingerprint(layout);
+        return layout;
+      } catch (error) {
+        if (attempt === 7) throw new Error('关卡生成超出预算，请重试。');
+      }
+    }
+    throw new Error('无法生成经验证的关卡，请重试。');
+  }
+  return { VERSION, TILE_SIZE, WIDTH, HEIGHT, PLACES, random, overlaps, blockers,
+    isAvailable, createGame, snapshot, pick, takeOut, shuffle, undo, canonical, fingerprint,
+    verifyLayout, generate };
+});
+</script>
+<script>(function (root, factory) {
+  const api = factory(root);
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.MeadowVault = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
+  'use strict';
+  const FORMAT = 1;
+  const HISTORY_LIMIT = 4096;
+  const MAX_BYTES = 1500000;
+  const MAX_PLAIN = 4000000;
+  const MAX_DIGITS = 10 + Math.ceil(MAX_BYTES / 7) * 17;
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder('utf-8', { fatal: true });
+  const INFO = encoder.encode('meadow-triples/offline-save/HKDF-SHA256/AES-256-GCM/v1');
+  const VALIDATED_LAYOUTS = new Map();
+  let dbPromise;
+  let writeQueue = Promise.resolve();
+
+  function fail(message) { throw new Error(message); }
+  function cryptoAPI() {
+    const c = root.crypto;
+    if (!c || !c.subtle || !c.getRandomValues) {
+      fail('当前浏览器未提供安全的 Web Crypto API，无法使用加密存档。请用支持此功能的现代浏览器打开本地文件，或使用 HTTPS / localhost。');
+    }
+    return c;
+  }
+  function engineAPI() {
+    if (root.MeadowEngine) return root.MeadowEngine;
+    if (typeof require === 'function') return require('./engine.js');
+    fail('关卡验证模块尚未准备好。');
+  }
+  function parseSeed(seed) {
+    if (typeof seed !== 'string' || !/^[1-9]\d{38,48}$/.test(seed)) fail('游戏种子应为 39–49 位十进制数字，请完整粘贴。');
+    const value = BigInt(seed);
+    if (value < (1n << 127n) || value >= (1n << 160n)) fail('游戏种子超出支持的安全范围。');
+    let n = value;
+    const bytes = new Uint8Array(20);
+    for (let i = 19; i >= 0; i--) { bytes[i] = Number(n & 255n); n >>= 8n; }
+    return bytes;
+  }
+  function newSeed() {
+    const bytes = cryptoAPI().getRandomValues(new Uint8Array(20));
+    bytes[0] |= 128;
+    let n = 0n;
+    for (const b of bytes) n = (n << 8n) | BigInt(b);
+    return n.toString(10);
+  }
+  // Fixed-width chunks preserve zero bytes without a single unbounded BigInt.
+  function encodeDecimal(bytes) {
+    if (!(bytes instanceof Uint8Array) || bytes.length < 1 || bytes.length > MAX_BYTES) fail('存档数据过大，无法编码。');
+    const parts = ['1', String(bytes.length).padStart(9, '0')];
+    for (let offset = 0; offset < bytes.length; offset += 7) {
+      let n = 0n;
+      for (let j = 0; j < 7; j++) n = (n << 8n) | BigInt(bytes[offset + j] || 0);
+      parts.push(n.toString(10).padStart(17, '0'));
+    }
+    return parts.join('');
+  }
+  function decodeDecimal(code) {
+    if (typeof code !== 'string' || code.length < 27 || code.length > MAX_DIGITS || !/^\d+$/.test(code)) fail('存档码必须是完整的纯十进制数字，且不超过支持的容量。');
+    if (code[0] !== '1') fail('不支持此数字编码版本。');
+    const length = Number(code.slice(1, 10));
+    if (length < 1 || length > MAX_BYTES || code.length !== 10 + Math.ceil(length / 7) * 17) fail('存档码长度不正确，可能未复制完整。');
+    const bytes = new Uint8Array(Math.ceil(length / 7) * 7);
+    for (let i = 10, offset = 0; i < code.length; i += 17, offset += 7) {
+      let n = BigInt(code.slice(i, i + 17));
+      if (n >= (1n << 56n)) fail('存档码包含无效数字分组。');
+      for (let j = 6; j >= 0; j--) { bytes[offset + j] = Number(n & 255n); n >>= 8n; }
+    }
+    for (let i = length; i < bytes.length; i++) if (bytes[i] !== 0) fail('存档码尾部校验失败。');
+    return bytes.slice(0, length);
+  }
+  async function deriveKey(seed, salt) {
+    const c = cryptoAPI();
+    const material = await c.subtle.importKey('raw', parseSeed(seed), 'HKDF', false, ['deriveKey']);
+    return c.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt, info: INFO }, material, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  }
+  async function transform(bytes, decompress) {
+    const Ctor = decompress ? root.DecompressionStream : root.CompressionStream;
+    if (!Ctor) {
+      if (decompress) fail('此浏览器不支持 gzip 解压，无法恢复该存档。请更新浏览器。');
+      return null;
+    }
+    const stream = new Blob([bytes]).stream().pipeThrough(new Ctor('gzip'));
+    const reader = stream.getReader();
+    const parts = [];
+    let size = 0;
+    try {
+      while (true) {
+        const part = await reader.read();
+        if (part.done) break;
+        size += part.value.length;
+        if (size > (decompress ? MAX_PLAIN : MAX_BYTES)) { await reader.cancel(); fail('存档展开后超过容量限制。'); }
+        parts.push(part.value);
+      }
+    } finally { reader.releaseLock(); }
+    const out = new Uint8Array(size);
+    let at = 0;
+    for (const p of parts) { out.set(p, at); at += p.length; }
+    return out;
+  }
+  function integer(n, min, max) { return Number.isSafeInteger(n) && n >= min && n <= max; }
+  function object(o) { return o !== null && typeof o === 'object' && !Array.isArray(o); }
+  function assert(check, message) { if (!check) fail('存档校验失败：' + message); }
+  function validateGame(game, layout, isUndo) {
+    const n = layout.tiles.length;
+    assert(object(game), '游戏状态缺失。');
+    assert(Array.isArray(game.places) && game.places.length === n && game.places.every(p => ['board', 'tray', 'reserve', 'gone'].includes(p)), '方块状态不完整。');
+    assert(Array.isArray(game.types) && game.types.length === n && game.types.every(t => integer(t, 0, 11)), '图案数据无效。');
+    assert(Array.isArray(game.tray) && game.tray.length <= 7 && Array.isArray(game.reserve) && game.reserve.length <= 3, '收集槽或备用区超出容量。');
+    const ids = new Set();
+    for (const [place, list] of [['tray', game.tray], ['reserve', game.reserve]]) {
+      for (const id of list) { assert(integer(id, 0, n - 1) && !ids.has(id) && game.places[id] === place, '槽位编号重复或状态不一致。'); ids.add(id); }
+      assert(game.places.filter(p => p === place).length === list.length, '槽位与方块状态不一致。');
+    }
+    const original = Array(12).fill(0), current = Array(12).fill(0), gone = Array(12).fill(0), trayCounts = Array(12).fill(0);
+    for (let i = 0; i < n; i++) {
+      original[layout.tiles[i].type]++; current[game.types[i]]++;
+      if (game.places[i] === 'gone') gone[game.types[i]]++;
+    }
+    for (const id of game.tray) trayCounts[game.types[id]]++;
+    assert(original.every((v, i) => v === current[i] && gone[i] % 3 === 0 && trayCounts[i] < 3), '图案总量、三消记录或槽位不合法。');
+    assert(object(game.tools) && ['undo', 'move', 'shuffle'].every(k => integer(game.tools[k], 0, 1)), '道具数量无效。');
+    assert(game.tools.move === 0 || game.reserve.length === 0, '备用区缺少移出记录。');
+    assert(game.tools.shuffle === 0 || game.types.every((type, id) => type === layout.tiles[id].type), '未使用洗牌时图案已改变。');
+    // Removing a lower tile requires every actual upper blocker to have left
+    // the board already. This closure must hold in current and undo snapshots.
+    const graph = engineAPI().blockers(layout);
+    assert(game.places.every((place, id) => place === 'board' || graph[id].every(upper => game.places[upper] !== 'board')), '移除记录违反真实遮挡。');
+    const expected = game.places.every(p => p === 'gone') ? 'won' : game.tray.length === 7 ? 'lost' : 'playing';
+    assert(game.status === expected, '胜负状态不一致。');
+    if (!isUndo) {
+      assert(game.undo === null || object(game.undo), '撤回快照无效。');
+      if (game.undo !== null) {
+        assert(game.undo.undo === undefined || game.undo.undo === null, '撤回快照嵌套过深。');
+        validateGame(game.undo, layout, true);
+        validateUndoTransition(game, layout);
+      }
+    }
+  }
+  function validateUndoTransition(game, layout) {
+    const engine = engineAPI();
+    const before = game.undo;
+    assert(before.status === 'playing', '撤回快照不是操作前的游戏状态。');
+    const expected = JSON.stringify(engine.snapshot(game));
+    const cloneBefore = () => ({ ...engine.snapshot(before), undo: null });
+    // A pick is deterministic, including insertion order and any three-clear.
+    for (let id = 0; id < layout.tiles.length; id++) {
+      if (before.places[id] !== 'board' && before.places[id] !== 'reserve') continue;
+      const candidate = cloneBefore();
+      if (engine.pick(layout, candidate, id).ok && JSON.stringify(engine.snapshot(candidate)) === expected) return;
+    }
+    const moved = cloneBefore();
+    if (engine.takeOut(layout, moved).ok && JSON.stringify(engine.snapshot(moved)) === expected) return;
+    // A random permutation has no unique seed in a snapshot. Verify the entire
+    // legal effect: board-only permutation, fixed outside tiles and tool cost.
+    if (before.tools.shuffle === 1 && game.tools.shuffle === 0 &&
+      before.tools.undo === game.tools.undo && before.tools.move === game.tools.move &&
+      before.status === game.status && JSON.stringify(before.places) === JSON.stringify(game.places) &&
+      JSON.stringify(before.tray) === JSON.stringify(game.tray) && JSON.stringify(before.reserve) === JSON.stringify(game.reserve)) {
+      const ids = before.places.map((place, id) => place === 'board' ? id : -1).filter(id => id >= 0);
+      const priorBag = ids.map(id => before.types[id]).sort((a, b) => a - b);
+      const nextBag = ids.map(id => game.types[id]).sort((a, b) => a - b);
+      if (ids.length >= 2 && JSON.stringify(priorBag) === JSON.stringify(nextBag) &&
+        before.types.every((type, id) => before.places[id] === 'board' || type === game.types[id])) return;
+    }
+    fail('存档校验失败：撤回快照与最近一次有效操作不一致。');
+  }
+  async function validate(session, options) {
+    options = options || {};
+    assert(object(session) && session.format === FORMAT && session.generator === 1, '存档或生成器版本不兼容。');
+    parseSeed(session.seed);
+    assert(integer(session.level, 1, Number.MAX_SAFE_INTEGER) && integer(session.highest, session.level, Number.MAX_SAFE_INTEGER) && integer(session.cleared, 0, Number.MAX_SAFE_INTEGER), '关卡记录无效。');
+    assert(typeof session.createdAt === 'string' && Number.isFinite(Date.parse(session.createdAt)) && typeof session.updatedAt === 'string' && Number.isFinite(Date.parse(session.updatedAt)), '存档时间无效。');
+    const layout = session.layout;
+    assert(object(layout) && layout.version === 1 && layout.level === session.level && integer(layout.retry, 0, 1000000), '关卡参数无效。');
+    assert(object(layout.params), '生成参数缺失。');
+    assert(Array.isArray(layout.tiles) && layout.tiles.length >= 3 && layout.tiles.length <= 240 && layout.tiles.length % 3 === 0, '方块数量无效。');
+    for (let i = 0; i < layout.tiles.length; i++) {
+      const t = layout.tiles[i];
+      assert(object(t) && t.id === i && Number.isFinite(t.x) && Number.isFinite(t.y) && t.x >= 0 && t.x <= 368 && t.y >= 0 && t.y <= 348 && integer(t.z, 0, 15) && integer(t.type, 0, 11), '方块坐标、层级或图案无效。');
+      for (let j = 0; j < i; j++) {
+        const other = layout.tiles[j];
+        assert(t.z !== other.z || Math.abs(t.x - other.x) >= 52 || Math.abs(t.y - other.y) >= 52, '同层方块相互重叠。');
+      }
+    }
+    assert(Array.isArray(layout.solution) && layout.solution.length === layout.tiles.length && new Set(layout.solution).size === layout.tiles.length && layout.solution.every(id => integer(id, 0, layout.tiles.length - 1)), '通关序列无效。');
+    assert(typeof layout.fingerprint === 'string' && /^[a-f0-9]{64}$/.test(layout.fingerprint), '关卡指纹无效。');
+    assert(Array.isArray(session.history) && session.history.length >= 1 && session.history.length <= HISTORY_LIMIT && session.history.every(s => typeof s === 'string' && /^[a-f0-9]{64}$/.test(s)) && new Set(session.history).size === session.history.length && session.history.includes(layout.fingerprint), '历史去重记录无效或超出容量。');
+    validateGame(session.game, layout, false);
+    const engine = engineAPI();
+    // The cache key includes ALL layout data, including its actual certificate.
+    const key = JSON.stringify(layout);
+    let cached = VALIDATED_LAYOUTS.get(key);
+    if (!cached) {
+      const verified = engine.verifyLayout(layout);
+      assert(verified && verified.valid, '关卡没有通过真实规则的可解性验证。');
+      assert(await engine.fingerprint(layout) === layout.fingerprint, '关卡指纹不匹配。');
+      cached = { seeds: new Set() };
+      VALIDATED_LAYOUTS.set(key, cached);
+      if (VALIDATED_LAYOUTS.size > 16) VALIDATED_LAYOUTS.delete(VALIDATED_LAYOUTS.keys().next().value);
+    }
+    if (options.reproduce !== false && !cached.seeds.has(session.seed)) {
+      const reproduced = await engine.generate(session.seed, session.level, layout.retry);
+      assert(JSON.stringify(reproduced) === JSON.stringify(layout), '关卡与种子及生成参数不一致。');
+      cached.seeds.add(session.seed);
+    }
+    return session;
+  }
+  async function encrypt(seed, session) {
+    cryptoAPI();
+    parseSeed(seed);
+    assert(session.seed === seed, '种子与当前游戏不一致。');
+    await validate(session);
+    const plainObject = { ...session };
+    delete plainObject.seed;
+    const plain = encoder.encode(JSON.stringify(plainObject));
+    if (plain.length > MAX_PLAIN) fail('当前存档已超出导出容量，请整理历史记录。');
+    const zipped = await transform(plain, false);
+    const useZip = zipped && zipped.length < plain.length;
+    const c = cryptoAPI();
+    const salt = c.getRandomValues(new Uint8Array(16));
+    const nonce = c.getRandomValues(new Uint8Array(12));
+    const header = new Uint8Array([77, 84, 83, FORMAT, useZip ? 1 : 0]);
+    const key = await deriveKey(seed, salt);
+    const ciphertext = new Uint8Array(await c.subtle.encrypt({ name: 'AES-GCM', iv: nonce, additionalData: header, tagLength: 128 }, key, useZip ? zipped : plain));
+    const output = new Uint8Array(header.length + salt.length + nonce.length + ciphertext.length);
+    output.set(header); output.set(salt, 5); output.set(nonce, 21); output.set(ciphertext, 33);
+    return encodeDecimal(output);
+  }
+  async function decrypt(seed, code) {
+    cryptoAPI();
+    parseSeed(seed);
+    const bytes = decodeDecimal(code);
+    if (bytes.length < 50 || bytes[0] !== 77 || bytes[1] !== 84 || bytes[2] !== 83 || bytes[3] !== FORMAT || bytes[4] > 1) fail('存档格式不兼容或数据已损坏。');
+    let plain;
+    try {
+      const key = await deriveKey(seed, bytes.slice(5, 21));
+      plain = new Uint8Array(await cryptoAPI().subtle.decrypt({ name: 'AES-GCM', iv: bytes.slice(21, 33), additionalData: bytes.slice(0, 5), tagLength: 128 }, key, bytes.slice(33)));
+    } catch (error) {
+      fail('无法恢复：游戏种子不正确，或存档码已损坏。请核对两个代码。');
+    }
+    let candidate;
+    try {
+      if (bytes[4] === 1) plain = await transform(plain, true);
+      if (plain.length > MAX_PLAIN) fail('存档内容超过容量限制。');
+      candidate = JSON.parse(decoder.decode(plain));
+      assert(object(candidate) && candidate.seed === undefined, '存档内容格式无效。');
+      candidate.seed = seed;
+    } catch (error) {
+      if (error.message && /浏览器|容量/.test(error.message)) throw error;
+      fail('存档内容格式无效，未覆盖当前进度。');
+    }
+    await validate(candidate);
+    return candidate;
+  }
+  function open() {
+    if (!root.indexedDB) return Promise.reject(new Error('此浏览器无法使用 IndexedDB，本地自动保存不可用。请保留双码存档或切换浏览器。'));
+    if (!dbPromise) dbPromise = new Promise((resolve, reject) => {
+      const request = root.indexedDB.open('meadow-triples', 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
+        if (!db.objectStoreNames.contains('history')) db.createObjectStore('history', { keyPath: 'fingerprint' });
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        db.onversionchange = () => { db.close(); dbPromise = undefined; };
+        resolve(db);
+      };
+      request.onerror = () => { dbPromise = undefined; reject(new Error('无法打开本地存档，可能未授予存储权限。')); };
+      request.onblocked = () => { dbPromise = undefined; reject(new Error('本地存档升级被其他窗口阻止，请关闭其他游戏窗口。')); };
+    });
+    return dbPromise;
+  }
+  async function load() {
+    const db = await open();
+    const data = await new Promise((resolve, reject) => {
+      const tx = db.transaction('meta', 'readonly');
+      const request = tx.objectStore('meta').get('current');
+      request.onsuccess = () => resolve(request.result || null);
+      request.onerror = () => reject(new Error('读取本地存档失败。'));
+    });
+    if (data) await validate(data);
+    return data;
+  }
+  async function persist(session, strongValidation) {
+    // Clone BEFORE waiting: later game actions cannot change an earlier write.
+    const clone = typeof structuredClone === 'function' ? structuredClone(session) : JSON.parse(JSON.stringify(session));
+    await validate(clone, { reproduce: strongValidation });
+    const db = await open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(['meta', 'history'], 'readwrite');
+      const meta = tx.objectStore('meta');
+      const current = meta.get('current');
+      current.onsuccess = () => {
+        const previous = current.result;
+        meta.put(clone, 'current');
+        // Most writes only change one move. Avoid rewriting thousands of
+        // identical history rows, while retaining one atomic transaction.
+        if (previous && Array.isArray(previous.history) && previous.history.length === clone.history.length &&
+          previous.history.every((fingerprint, i) => fingerprint === clone.history[i])) return;
+        const history = tx.objectStore('history');
+        history.clear();
+        clone.history.forEach((fingerprint, order) => history.put({ fingerprint, order }));
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = tx.onabort = () => reject(new Error('本地自动保存失败：存储空间可能不足。当前进度尚未写入，请导出双码存档。'));
+    });
+  }
+  function scheduleWrite(session, strongValidation) {
+    const clone = typeof structuredClone === 'function' ? structuredClone(session) : JSON.parse(JSON.stringify(session));
+    const run = () => persist(clone, strongValidation);
+    const result = writeQueue.then(run, run);
+    writeQueue = result.catch(() => {});
+    return result;
+  }
+  async function save(session) { return scheduleWrite(session, false); }
+  async function replace(session) { return scheduleWrite(session, true); }
+  async function clear() {
+    const db = await open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(['meta', 'history'], 'readwrite');
+      tx.objectStore('meta').clear(); tx.objectStore('history').clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = tx.onabort = () => reject(new Error('删除本地存档失败。'));
+    });
+  }
+  return { FORMAT, HISTORY_LIMIT, MAX_DIGITS, MAX_BYTES, newSeed, encrypt, decrypt, validate, open, load, save, replace, clear, encodeDecimal, decodeDecimal, available: () => !!(root.crypto && root.crypto.subtle && root.crypto.getRandomValues) };
+});
+</script>
+<script>(function () {
+  'use strict';
+  const E = window.MeadowEngine, V = window.MeadowVault;
+  const $ = id => document.getElementById(id);
+  const clone = data => structuredClone(data);
+  const names = ['胡萝卜','玉米','白菜','蘑菇','苹果','萝卜','茄子','梨子','南瓜','辣椒','小花','橡果'];
+  const nodes = new Map();
+  const modal = $('modal');
+  let session = null, locked = false, generating = false, toastTimer, modalEpoch = 0;
+  let storageOK = true, saveSequence = 0, workerJob = 0, resizePending = false;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, reducedMotion.matches ? 5 : ms));
+  function toast(message) {
+    $('toast').textContent = message;
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 3400);
+  }
+  function setLocked(value) {
+    locked = value;
+    document.body.classList.toggle('in-operation', value);
+    updateControls();
+    if (!value && resizePending && session) { resizePending = false; render(); }
+  }
+  function setBusy(value, label) {
+    generating = value;
+    $('busy-cover').hidden = !value;
+    if (label) $('busy-label').textContent = label;
+    updateControls();
+  }
+  function closeModal() { modalEpoch++; modal.close(); }
+  function openModal(title, content) {
+    modalEpoch++;
+    modal.innerHTML = '<div class="modal-top"><h2 id="modal-title"></h2><button class="close-button" aria-label="关闭弹窗">×</button></div>' + content;
+    $('modal-title').textContent = title;
+    modal.querySelector('.close-button').onclick = closeModal;
+    if (!modal.open) modal.showModal();
+    return modalEpoch;
+  }
+  modal.addEventListener('click', event => {
+    if (event.target === modal) {
+      const r = modal.getBoundingClientRect();
+      if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) closeModal();
+    }
+  });
+  modal.addEventListener('cancel', () => { modalEpoch++; });
+  function confirmAction(title, description, label, action) {
+    openModal(title, '<p class="modal-description" id="confirm-description"></p><div class="modal-actions"><button class="secondary" id="confirm-cancel">再想想</button><button class="primary" id="confirm-ok"></button></div>');
+    $('confirm-description').textContent = description;
+    $('confirm-ok').textContent = label;
+    $('confirm-cancel').onclick = closeModal;
+    $('confirm-ok').onclick = async () => { closeModal(); await action(); };
+  }
+  function setSaveStatus(text, error = false) {
+    $('save-status').textContent = text;
+    $('save-status').classList.toggle('save-status-error', error);
+    $('mobile-save-status').textContent = error ? '本地保存不可用，请导出存档' : '';
+    $('mobile-save-state').textContent = error ? '保存失败' : text.includes('正在') ? '正在保存' : '已自动保存';
+    $('mobile-save-state').classList.toggle('save-status-error', error);
+  }
+  async function autoSave() {
+    if (!session) return;
+    session.updatedAt = new Date().toISOString();
+    const seq = ++saveSequence;
+    setSaveStatus('正在保存这片田园…');
+    try {
+      await V.save(session);
+      storageOK = true;
+      if (seq === saveSequence) setSaveStatus('✓ 已自动保存在此设备');
+    } catch (error) {
+      storageOK = false;
+      if (seq === saveSequence) setSaveStatus('本地保存不可用，请及时导出存档', true);
+    }
+  }
+  function produce(type) {
+    return '<svg class="produce" viewBox="0 0 64 64" aria-hidden="true"><use href="#p'+type+'"/></svg>';
+  }
+  function makeTile(id) {
+    const el = document.createElement('button');
+    el.className = 'tile'; el.type = 'button'; el.dataset.id = id;
+    el.addEventListener('click', () => act('pick', id));
+    nodes.set(id, el);
+    return el;
+  }
+  function updateControls() {
+    const inactive = !session || locked || generating;
+    const g = session?.game;
+    $('undo-btn').disabled = inactive || !g?.tools.undo || !g?.undo;
+    $('move-btn').disabled = inactive || g?.status !== 'playing' || !g?.tools.move || !g?.tray.length;
+    $('shuffle-btn').disabled = inactive || g?.status !== 'playing' || !g?.tools.shuffle || g?.places.filter(p => p === 'board').length < 2;
+    for (const id of ['restart-btn','next-btn','new-btn','export-btn','export-mobile','restore-btn','restore-mobile','board-info-btn','self-test-btn']) $(id).disabled = inactive;
+    if (g) for (const key of ['undo','move','shuffle']) {
+      $(key+'-count').textContent = '×'+g.tools[key];
+      const button = $(key+'-btn');
+      const description = {undo:'撤回最近一次有效操作',move:'移出最多三张到备用区',shuffle:'重新分配场上的图案'}[key];
+      button.title = g.tools[key] ? description+'，本局剩余 1 次' : '本局次数已用完';
+    }
+  }
+  function trayGeometry(index) {
+    const rect = $('tray-items').getBoundingClientRect();
+    const slots = $('tray').querySelectorAll('.slot');
+    const r = slots[Math.min(index,6)].getBoundingClientRect();
+    const size = Math.min(r.width, r.height);
+    return { left:r.left - rect.left, top:(rect.height-size)/2, size, x:r.left, y:rect.top+(rect.height-size)/2 };
+  }
+  function render(fresh = false) {
+    if (!session) return;
+    const {layout,game:g} = session;
+    $('reserve-row').dataset.empty = String(g.reserve.length === 0);
+    if (fresh) { for (const node of nodes.values()) node.remove(); nodes.clear(); }
+    const graph = E.blockers(layout);
+    for (const tile of layout.tiles) {
+      const id = tile.id, place = g.places[id];
+      let node = nodes.get(id);
+      if (place === 'gone') { if (node) node.remove(); continue; }
+      if (!node) node = makeTile(id);
+      if (node.dataset.type !== String(g.types[id])) {
+        node.innerHTML = produce(g.types[id]); node.dataset.type = String(g.types[id]);
+      }
+      const blocked = place === 'board' && graph[id].some(other => g.places[other] === 'board');
+      node.classList.toggle('blocked', blocked);
+      node.disabled = blocked || g.status !== 'playing';
+      node.setAttribute('aria-label', names[g.types[id]]+(blocked ? '，被上层遮挡' : place === 'reserve' ? '，从备用区收回' : '，点击收集'));
+      node.setAttribute('aria-disabled', String(node.disabled));
+      if (place === 'board') {
+        if (node.parentNode !== $('board')) $('board').append(node);
+        Object.assign(node.style,{left:tile.x/420*100+'%',top:tile.y/400*100+'%',width:52/420*100+'%',height:52/400*100+'%',zIndex:String(10+tile.z)});
+      } else if (place === 'tray') {
+        if (node.parentNode !== $('tray-items')) $('tray-items').append(node);
+        const r = trayGeometry(g.tray.indexOf(id));
+        Object.assign(node.style,{left:r.left+'px',top:r.top+'px',width:r.size+'px',height:r.size+'px',zIndex:'20'});
+      } else if (place === 'reserve') {
+        if (node.parentNode !== $('reserve')) $('reserve').append(node);
+        const index = g.reserve.indexOf(id);
+        const parentRect = $('reserve').getBoundingClientRect();
+        const slotRect = $('reserve').querySelectorAll('.reserve-slot')[index].getBoundingClientRect();
+        Object.assign(node.style,{left:slotRect.left-parentRect.left+'px',top:'0px',width:slotRect.width+'px',height:slotRect.height+'px',zIndex:'20'});
+      }
+    }
+    $('level-label').textContent = '第 '+String(session.level).padStart(2,'0')+' 关';
+    $('remaining-label').textContent = g.places.filter(p => p === 'board').length;
+    $('tray-count').textContent = g.tray.length+' / 7';
+    $('tray-tip').textContent = g.tray.length >= 6 ? '只剩 1 格，先找能凑齐的图案' : g.tray.length >= 5 ? '空位不多了，先凑齐三个' : '三个相同，自动消除';
+    if (g.status === 'lost') $('tray-tip').textContent = '槽位已满，再试一次吧';
+    $('tray-tip').style.color = g.tray.length >= 5 ? '#9b673a' : '';
+    $('tray').dataset.pressure = g.status === 'lost' ? 'lost' : g.tray.length >= 6 ? 'danger' : g.tray.length >= 5 ? 'warn' : 'calm';
+    $('tray').querySelectorAll('.slot').forEach((slot, i) => {
+      slot.dataset.slot = String(i + 1);
+      slot.dataset.filled = String(i < g.tray.length);
+    });
+    const progress = Math.round(g.places.filter(p => p === 'gone').length / layout.tiles.length * 100);
+    $('harvest-fill').style.width = progress+'%';
+    $('harvest-progress').setAttribute('aria-valuenow', String(progress));
+    $('harvest-label').textContent = '已收好 '+progress+'%';
+    $('state-label').textContent = g.status === 'won' ? '收集完成' : g.status === 'lost' ? '槽位已满' : '悠闲收集中';
+    $('state-label').dataset.state = g.status;
+    $('sheep-speech').textContent = g.status === 'won' ? '又收好一片好心情。' : g.status === 'lost' ? '休息一下，再出发。' : g.tray.length >= 5 ? '给空位留一点余地。' : '别着急，慢慢来。';
+    $('sheep-hint').textContent = g.status === 'won' ? '下一片田园，等你一起去' : g.tray.length >= 5 ? '先凑三个，再接下一张' : '小羊会一直陪着你 ♡';
+    $('cleared-label').innerHTML = session.cleared+'<span>关</span>';
+    $('next-btn').hidden = g.status !== 'won';
+    updateControls();
+  }
+  function capture() {
+    const rects = new Map();
+    for (const [id,node] of nodes) if (node.isConnected) rects.set(id,{rect:node.getBoundingClientRect(),node:node.cloneNode(true)});
+    return rects;
+  }
+  function animateMoved(before, excluded = []) {
+    if (reducedMotion.matches) return;
+    for (const [id,node] of nodes) {
+      if (!node.isConnected || excluded.includes(id)) continue;
+      const previous = before.get(id);
+      if (!previous) {
+        node.animate([{opacity:0,scale:'.6'},{opacity:1,scale:'1'}],{duration:260});
+        continue;
+      }
+      const a = previous.rect, b = node.getBoundingClientRect();
+      if (Math.abs(a.left-b.left)+Math.abs(a.top-b.top)>1 || Math.abs(a.width-b.width)>1) {
+        node.animate([{transform:'translate('+(a.left-b.left)+'px,'+(a.top-b.top)+'px) scale('+(a.width/b.width)+','+(a.height/b.height)+')'},{transform:'translate(0,0) scale(1)'}],{duration:310,easing:'cubic-bezier(.22,.75,.2,1)'});
+      }
+    }
+  }
+  function burst(x,y,count=12,celebrate=false) {
+    if (reducedMotion.matches) return;
+    const rng = E.random(x+'|'+y+'|'+performance.now());
+    for (let i=0;i<count;i++) {
+      const p = document.createElement('i'); p.className='particle';
+      p.style.background = ['#a7bf77','#e4c375','#e7aa8c','#f5efcf','#7b9b6b'][i%5];
+      p.style.left=x+'px';p.style.top=y+'px';document.body.append(p);
+      const angle=rng()*Math.PI*2, distance=(celebrate?110:30)+rng()*(celebrate?230:35);
+      const animation=p.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate('+Math.cos(angle)*distance+'px,'+(Math.sin(angle)*distance+(celebrate?160:20))+'px) rotate('+(rng()*600)+'deg)',opacity:0}],{duration:celebrate?1250:650,easing:'cubic-bezier(.1,.7,.4,1)'});
+      animation.finished.then(()=>p.remove()).catch(()=>p.remove());
+    }
+  }
+  async function animateMatch(before, matched, interimOrder) {
+    const animations = [];
+    for (const id of matched) {
+      const previous = before.get(id);
+      if (!previous) continue;
+      const r = trayGeometry(interimOrder.indexOf(id));
+      const ghost = previous.node;
+      ghost.className='tile ghost';ghost.disabled=true;
+      const a=previous.rect;
+      Object.assign(ghost.style,{left:a.left+'px',top:a.top+'px',width:a.width+'px',height:a.height+'px',zIndex:'10000'});
+      document.body.append(ghost);
+      if (!reducedMotion.matches) {
+        const animation=ghost.animate([
+          {transform:'translate(0,0) scale(1)',opacity:1,offset:0},
+          {transform:'translate('+(r.x-a.left)+'px,'+(r.y-a.top)+'px) scale('+(r.size/a.width)+')',opacity:1,offset:.57},
+          {transform:'translate('+(r.x-a.left)+'px,'+(r.y-a.top)+'px) scale('+(r.size/a.width*1.12)+')',opacity:1,offset:.72},
+          {transform:'translate('+(r.x-a.left)+'px,'+(r.y-a.top)+'px) scale(.1)',opacity:0,offset:1}
+        ],{duration:560,easing:'cubic-bezier(.22,.7,.25,1)'});
+        animations.push(animation.finished.catch(()=>{}).then(()=>ghost.remove()));
+      } else ghost.remove();
+    }
+    await sleep(340);
+    for (const id of matched) { const r=trayGeometry(interimOrder.indexOf(id)); burst(r.x+r.size/2,r.y+r.size/2,7); }
+    await Promise.all(animations);
+  }
+  async function act(kind,id) {
+    if (!session || locked || generating) return;
+    if (kind === 'pick' && (session.game.status !== 'playing' || !E.isAvailable(session.layout,session.game,id))) return;
+    setLocked(true);
+    const before=capture(), g=session.game;
+    let interimOrder=g.tray.slice();
+    if (kind==='pick') {
+      let index=interimOrder.length;
+      for(let i=interimOrder.length-1;i>=0;i--) if(g.types[interimOrder[i]]===g.types[id]){index=i+1;break;}
+      interimOrder.splice(index,0,id);
+    }
+    let result;
+    try {
+      if(kind==='pick') result=E.pick(session.layout,g,id);
+      else if(kind==='undo') result=E.undo(session.layout,g);
+      else if(kind==='move') result=E.takeOut(session.layout,g);
+      else if(kind==='shuffle') result=E.shuffle(session.layout,g,session.seed+'|'+session.level+'|'+session.layout.retry+'|'+g.places.join(',')+'|'+g.tray.join(','));
+      if(!result?.ok) return;
+      if(g.status==='won') session.cleared=Math.max(session.cleared,session.level);
+      render();
+      animateMoved(before,result.matched||[]);
+      const saving=autoSave();
+      if(result.matched?.length) await animateMatch(before,result.matched,interimOrder);
+      else if(kind==='shuffle'&&!reducedMotion.matches) {
+        for(const tileId of result.ids) nodes.get(tileId)?.animate([{transform:'scale(1)'},{transform:'scale(.75) rotate(-5deg)',offset:.45},{transform:'scale(1)'}],{duration:380});
+        await sleep(390);
+      } else await sleep(330);
+      await saving;
+      if(g.status==='won') {const r=$('board').getBoundingClientRect();burst(r.x+r.width/2,r.y+r.height/2,55,true);showResult();}
+      else if(g.status==='lost') {
+        if(!reducedMotion.matches) $('tray').animate([{transform:'translateX(0)'},{transform:'translateX(-7px)'},{transform:'translateX(7px)'},{transform:'translateX(-4px)'},{transform:'translateX(0)'}],{duration:320});
+        await sleep(280); showResult();
+      }
+    } catch(error) { toast('这一步没有完成：'+error.message); }
+    finally {setLocked(false);}
+  }
+  function generateWorker(seed,level,retry) {
+    return new Promise((resolve,reject)=>{
+      let worker,url,timer;
+      const done=(error,data)=>{clearTimeout(timer);if(worker)worker.terminate();if(url)URL.revokeObjectURL(url);error?reject(error):resolve(data);};
+      try {
+        if(!window.Worker) throw new Error('当前浏览器不支持后台关卡生成，请使用现代浏览器。');
+        const source=$('engine-code').textContent+'\nself.onmessage=async function(event){try{const x=event.data; const layout=await MeadowEngine.generate(x.seed,x.level,x.retry);self.postMessage({layout:layout});}catch(e){self.postMessage({error:e.message});}};';
+        url=URL.createObjectURL(new Blob([source],{type:'text/javascript'}));
+        worker=new Worker(url);
+        worker.onmessage=event=>event.data.error?done(new Error(event.data.error)):done(null,event.data.layout);
+        worker.onerror=()=>done(new Error('后台生成失败，请重试或使用支持本地 Worker 的现代浏览器。'));
+        timer=setTimeout(()=>done(new Error('关卡生成超时，当前进度已保留。请重试。')),6500);
+        worker.postMessage({seed,level,retry});
+      } catch(error){done(error);}
+    });
+  }
+  async function uniqueLayout(seed,level,history,startRetry=0) {
+    const known=new Set(history);
+    for(let retry=startRetry;retry<startRetry+12;retry++) {
+      const layout=await generateWorker(seed,level,retry);
+      if(!E.verifyLayout(layout).valid || await E.fingerprint(layout)!==layout.fingerprint) throw new Error('新关卡没有通过规则验证，请重试。');
+      if(!known.has(layout.fingerprint)) return layout;
+    }
+    throw new Error('本次生成连续遇到重复关卡，请重试。当前进度已保留。');
+  }
+  async function newGame() {
+    if(locked||generating) return;
+    const previous=session;
+    setBusy(true,'小羊正在种下一片田园…');
+    const job=++workerJob;
+    try {
+      const seed=V.newSeed();
+      const history=previous?.history||[];
+      const layout=await uniqueLayout(seed,1,history);
+      if(job!==workerJob)return;
+      const now=new Date().toISOString();
+      const candidate={format:1,generator:1,seed,level:1,highest:1,cleared:0,layout,game:E.createGame(layout),history:[...history,layout.fingerprint].slice(-V.HISTORY_LIMIT),createdAt:now,updatedAt:now};
+      // The previous game is retained until the entire candidate passes validation.
+      await V.validate(candidate);
+      session=candidate;render(true); await autoSave();
+      if(previous)toast('一段全新的田园旅程开始了');
+    }catch(error){showGenerationError(error,previous?()=>newGame():()=>initialize());}
+    finally{setBusy(false);}
+  }
+  function showGenerationError(error,retry) {
+    openModal('田园还需要一点时间','<p class="modal-description" id="generation-error"></p><div class="modal-actions"><button class="primary" id="generation-retry">再试一次</button></div>');
+    $('generation-error').textContent=error.message;
+    $('generation-retry').onclick=()=>{closeModal();retry();};
+  }
+  async function nextLevel() {
+    if(locked||generating||session?.game.status!=='won')return;
+    closeModal();
+    if(session.level===Number.MAX_SAFE_INTEGER) {toast('已达到此版本可精确表示的关卡编号上限，请新建旅程。');return;}
+    setBusy(true,'正在生成下一片全新田园…');
+    try {
+      const level=session.level+1,layout=await uniqueLayout(session.seed,level,session.history);
+      session={...session,level,highest:Math.max(session.highest,level),layout,game:E.createGame(layout),history:[...session.history,layout.fingerprint].slice(-V.HISTORY_LIMIT)};
+      render(true);await autoSave();
+      if(level===2)toast('第二关开始，先看看哪些图案能凑成三个');
+    }catch(error){showGenerationError(error,()=>nextLevel());}
+    finally{setBusy(false);}
+  }
+  async function restart() {
+    if(locked||generating||!session)return;
+    closeModal();session.game=E.createGame(session.layout);render(true);await autoSave();toast('同一片田园，重新出发');
+  }
+  function showResult() {
+    if(!session)return;
+    const win=session.game.status==='won';
+    openModal(win?'收集完成':'休息一下，再出发','<div class="result-body"><svg class="result-art" viewBox="0 0 180 160"><use href="#sheep"/></svg><h2>'+(win?'这片田园，收好啦！':'差一点，就凑齐了。')+'</h2><p>'+(win?'第 '+session.level+' 关已完成。<br>下一片田园，会长出怎样的新惊喜？':'收集槽已经装满七张。<br>再观察一下遮挡，下一次会更从容。')+'</p><div class="modal-actions"><button class="secondary" id="result-secondary">'+(win?'再玩本关':session.game.tools.undo&&session.game.undo?'撤回最后一步':'重新开始')+'</button><button class="primary" id="result-primary">'+(win?'去下一片田园 →':'再试一次')+'</button></div><button class="text-button" id="result-export" style="margin:18px auto 0">导出此刻的存档</button></div>');
+    $('result-primary').onclick=win?nextLevel:restart;
+    $('result-secondary').onclick=win?restart:session.game.tools.undo&&session.game.undo?()=>{closeModal();act('undo');}:restart;
+    $('result-export').onclick=exportSave;
+  }
+  async function copyText(text) {
+    try {if(navigator.clipboard?.writeText) {await navigator.clipboard.writeText(text);toast('已完整复制');return;}}catch{}
+    const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';
+    (modal.open?modal:document.body).append(area);area.select();area.setSelectionRange(0,area.value.length);
+    const ok=document.execCommand('copy');area.remove();toast(ok?'已完整复制':'自动复制不可用，请长按或全选文本复制');
+  }
+  async function exportSave() {
+    if(!session||locked||generating)return;
+    const snapshot=clone(session),epoch=openModal('把这片田园带走','<p class="modal-description">保存下面两个代码，就能在兼容设备上继续此刻的进度。每次导出的密文都会不同。</p><div id="export-content"><div class="spinner" style="margin:25px auto"></div><p class="modal-description" style="text-align:center">正在安全加密…</p></div><p class="security-note">种子相当于恢复密钥。请妥善保存两个代码；同时持有它们的人可以恢复和读取完整进度。</p>');
+    try {
+      const code=await V.encrypt(snapshot.seed,snapshot);
+      if(epoch!==modalEpoch||!modal.open)return;
+      $('export-content').innerHTML='<label class="field-label" for="export-seed">游戏种子<button class="copy-small" id="copy-seed">复制种子</button></label><textarea class="seed-output" id="export-seed" readonly spellcheck="false"></textarea><label class="field-label" for="export-code">加密存档码<button class="copy-small" id="copy-code">复制存档码</button></label><textarea id="export-code" readonly spellcheck="false" rows="5"></textarea><div class="modal-meta" id="export-meta"></div><div class="modal-actions"><button class="primary" id="copy-both">一键复制两个代码</button><button class="secondary" id="download-save">保存为文本</button></div><div class="capacity-note" id="export-capacity"></div>';
+      $('export-seed').value=snapshot.seed;$('export-code').value=code;
+      $('export-meta').textContent='存档 v1 · '+new Date().toLocaleString('zh-CN')+' · '+code.length.toLocaleString()+' 位数字';
+      const both='咩咩田园 · 双码存档 v1\n种子：'+snapshot.seed+'\n存档码：'+code+'\n';
+      $('copy-seed').onclick=()=>copyText(snapshot.seed);$('copy-code').onclick=()=>copyText(code);$('copy-both').onclick=()=>copyText(both);
+      $('download-save').onclick=()=>{
+        const url=URL.createObjectURL(new Blob([both],{type:'text/plain;charset=utf-8'}));
+        const a=document.createElement('a');a.href=url;a.download='咩咩田园-第'+snapshot.level+'关-双码存档.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+      };
+      $('export-capacity').textContent='已携带 '+snapshot.history.length+' / '+V.HISTORY_LIMIT+' 条历史指纹。保留最近 '+V.HISTORY_LIMIT+' 关并逐一去重；历史增加时存档码也会变长。有限设备无法保证无限历史绝不重复。';
+    }catch(error){if(epoch===modalEpoch){$('export-content').innerHTML='<div class="error-message" id="export-error"></div>';$('export-error').textContent=error.message;}}
+  }
+  function restoreSave() {
+    if(locked||generating)return;
+    const epoch=openModal('恢复你的田园','<p class="modal-description">粘贴游戏种子和加密存档码，回到离开时的那一步。也可以把合并复制的两行内容粘贴进任一输入框。</p><label class="field-label" for="restore-seed">游戏种子</label><textarea class="seed-output" id="restore-seed" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="粘贴种子数字"></textarea><label class="field-label" for="restore-code">加密存档码</label><textarea id="restore-code" inputmode="numeric" autocomplete="off" spellcheck="false" rows="5" placeholder="粘贴完整的加密存档数字"></textarea><div class="error-message" id="restore-error" role="alert"></div><div class="modal-actions"><button class="secondary" id="restore-cancel">取消</button><button class="primary" id="restore-decrypt">验证并恢复</button></div><p class="security-note">全部校验通过后才会请求覆盖确认。错误种子、损坏代码或不兼容格式都不会覆盖现有进度。全程离线，无需上传。</p>');
+    for(const id of ['restore-seed','restore-code']) $(id).addEventListener('paste',event=>{
+      const text=event.clipboardData?.getData('text')||'';
+      const seed=text.match(/种子[：:]\s*(\d+)/),code=text.match(/存档码[：:]\s*([\d\s]+)/);
+      if(seed&&code){event.preventDefault();$('restore-seed').value=seed[1];$('restore-code').value=code[1].replace(/\s/g,'');}
+    });
+    $('restore-cancel').onclick=closeModal;
+    $('restore-decrypt').onclick=async()=>{
+      const button=$('restore-decrypt');button.disabled=true;button.textContent='正在解密与校验…';$('restore-error').textContent='';
+      try {
+        const seed=$('restore-seed').value.replace(/\s/g,''),code=$('restore-code').value.replace(/\s/g,'');
+        const candidate=await V.decrypt(seed,code);
+        if(epoch!==modalEpoch||!modal.open)return;
+        confirmAction('替换当前进度？','这个存档将恢复到第 '+candidate.level+' 关，收集槽有 '+candidate.game.tray.length+' 张，备用区有 '+candidate.game.reserve.length+' 张。确认后会覆盖此设备当前的本地进度。','确认恢复',async()=>{
+          setBusy(true,'正在恢复你的田园…');
+          try {
+            // replace validates first, then atomically writes current + history.
+            await V.replace(candidate);
+            session=candidate;storageOK=true;render(true);setSaveStatus('✓ 已恢复并保存在此设备');toast('欢迎回来，田园还是离开时的样子');
+            if(session.game.status!=='playing')showResult();
+          }catch(error){toast(error.message);}
+          finally{setBusy(false);}
+        });
+      }catch(error){if(epoch===modalEpoch&&modal.open){$('restore-error').textContent=error.message;button.disabled=false;button.textContent='验证并恢复';}}
+    };
+  }
+  function boardInfo() {
+    if(!session)return;
+    const p=session.layout.params,m=p.metrics;
+    openModal('这片田园的信息','<p class="modal-description">每次新关卡都由种子、关卡编号和生成器版本计算生成；重新开始会保留同一布局。</p><div class="help-list" id="info-details"></div><label class="field-label">完整关卡指纹</label><textarea id="info-fingerprint" class="seed-output" readonly></textarea><p class="capacity-note">指纹覆盖坐标、层级、图案和真实遮挡关系，不包含方块 ID。生成时与最近 '+V.HISTORY_LIMIT+' 条记录比较，重复则重新生成；不承诺数学意义上的无限不重复。</p>');
+    const lines=['生成器 v'+E.VERSION+' · 第 '+session.level+' 关 · 重试参数 '+session.layout.retry,p.total+' 张方块 · '+p.kinds+' 种图案 · '+p.layers+' 层堆叠','已验证一条无需道具的合法通关路径','初始可选 '+m.initialChoices+' 张 · 路径槽位峰值 '+m.peak+' / 7','遮挡关系 '+m.overlapEdges+' 组 · 路径平均可选 '+m.averageChoices+' 张','已保留 '+session.history.length+' 条完整历史指纹'];
+    $('info-details').textContent='';for(const line of lines){const div=document.createElement('div');div.textContent=line;$('info-details').append(div);}
+    $('info-fingerprint').value=session.layout.fingerprint;
+  }
+  function help() {
+    openModal('在田园里，三个刚刚好','<p class="modal-description">点选亮色方块，把它放入七格收集槽。三个同样的图案会自动消除；灰色方块需要先移开所有覆盖它的上层方块。</p><ol class="help-list"><li>七格装满且没有三消时失败；消除全部方块即通关。</li><li>撤回恢复上一步；移出将槽内最多三张放进备用区；洗牌只调换场上图案。每种道具每局一次，撤回不会返还已用次数。</li><li>备用区方块可点击收回。失败后若尚有撤回机会，也可以挽回最后一步。</li><li>每关都通过真实遮挡和七格规则的通关路径验证；使用道具后的局面可能改变。</li><li>进度自动存到本机。跨设备请保存种子和加密存档码，恢复时确认覆盖。</li></ol><p class="security-note">原创矢量素材，无外部资源。加密采用 HKDF-SHA-256 和 AES-256-GCM。种子与存档码请视为敏感凭据。客户端加密提供保密与篡改检测，不能防止玩家修改游戏程序。</p><div class="modal-actions"><button class="primary" id="help-start">开始收集</button></div>');
+    $('help-start').onclick=closeModal;
+  }
+  async function selfTest() {
+    if(locked||generating)return;
+    const epoch=openModal('运行自检','<p class="modal-description">验证算法、规则和加密恢复，不会修改你的当前进度。</p><div class="help-list" id="test-results"></div><p class="modal-meta" id="test-finish">正在检查…</p>');
+    const report=(text,ok)=>{if(epoch!==modalEpoch)return;const el=document.createElement('div');el.textContent=(ok?'✓ ':'✗ ')+text;el.style.color=ok?'#6f8b53':'#b1765a';$('test-results').append(el);};
+    let passed=0,total=0;
+    const check=async(name,fn)=>{total++;try{await fn();passed++;report(name,true);}catch(error){report(name+'：'+error.message,false);}};
+    const assert=(v)=>{if(!v)throw new Error('结果不一致');};
+    let demo,seed;
+    await check('随机种子与关卡确定性复现',async()=>{seed=V.newSeed();const a=await generateWorker(seed,3,0),b=await generateWorker(seed,3,0);assert(JSON.stringify(a)===JSON.stringify(b));demo={format:1,generator:1,seed,level:3,highest:3,cleared:2,layout:a,game:E.createGame(a),history:[a.fingerprint],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};});
+    await check('真实遮挡与正向通关验证',async()=>{assert(E.verifyLayout(demo.layout).valid);const g=E.createGame(demo.layout);for(const id of demo.layout.solution){assert(E.isAvailable(demo.layout,g,id));assert(E.pick(demo.layout,g,id).ok);assert(g.tray.length<7);}assert(g.status==='won');});
+    await check('完整结构指纹与重复关卡识别',async()=>{const set=new Set([demo.layout.fingerprint]);assert(set.has(await E.fingerprint(demo.layout)));const b=await generateWorker(seed,3,1);assert(!set.has(b.fingerprint));});
+    let code;
+    await check('中途存档加密、解密与恢复一致',async()=>{for(const id of demo.layout.solution.slice(0,5))E.pick(demo.layout,demo.game,id);code=await V.encrypt(seed,demo);const result=await V.decrypt(seed,code);assert(JSON.stringify(result.game)===JSON.stringify(demo.game));assert(JSON.stringify(result.layout)===JSON.stringify(demo.layout));});
+    await check('每次导出使用新的盐与 nonce',async()=>{assert(code!==await V.encrypt(seed,demo));});
+    await check('错误种子被拒绝',async()=>{let rejected=false;try{await V.decrypt(V.newSeed(),code);}catch{rejected=true;}assert(rejected);});
+    await check('密文篡改被拒绝',async()=>{const bytes=V.decodeDecimal(code);bytes[bytes.length-1]^=1;let rejected=false;try{await V.decrypt(seed,V.encodeDecimal(bytes));}catch{rejected=true;}assert(rejected);});
+    await check('跨设备等价恢复并继续通关',async()=>{const restored=await V.decrypt(seed,code);for(const id of restored.layout.solution.slice(5))assert(E.pick(restored.layout,restored.game,id).ok);assert(restored.game.status==='won');});
+    if(epoch===modalEpoch)$('test-finish').textContent=passed+' / '+total+' 项通过。'+(passed===total?'你的田园已准备好。':'请查看未通过项目。');
+  }
+  async function initialize() {
+    setBusy(true,'正在找回你的田园…');
+    try {
+      if(!V.available())throw new Error('当前环境没有安全的 Web Crypto API，无法生成受验证关卡或加密存档。请使用现代浏览器的本地文件、HTTPS 或 localhost。');
+      try {session=await V.load();storageOK=true;}
+      catch(error){storageOK=false;session=null;setSaveStatus('无法读取本地进度，请从双码恢复',true);toast(error.message);}
+      if(session){render(true);setSaveStatus('✓ 已找回上次的田园');if(session.game.status!=='playing')setTimeout(showResult,180);}
+      else {setBusy(false);await newGame();}
+    }catch(error){showGenerationError(error,initialize);}
+    finally{setBusy(false);}
+  }
+  $('undo-btn').onclick=()=>act('undo');$('move-btn').onclick=()=>act('move');$('shuffle-btn').onclick=()=>act('shuffle');
+  $('help-btn').onclick=help;$('board-info-btn').onclick=boardInfo;$('self-test-btn').onclick=selfTest;$('next-btn').onclick=nextLevel;
+  $('help-btn').setAttribute('aria-label','玩法说明');$('new-btn').setAttribute('aria-label','新建旅程');
+  $('new-btn').onclick=()=>confirmAction('开始一段新旅程？','这会生成全新种子，并替换当前游戏。想保留这片田园，可以先导出双码存档。','新建旅程',newGame);
+  $('restart-btn').onclick=()=>confirmAction('重新收集这片田园？','本关会回到最初的布局，所有道具恢复。当前这一局的操作将被清除。','重新开始',restart);
+  for(const id of ['export-btn','export-mobile'])$(id).onclick=exportSave;
+  for(const id of ['restore-btn','restore-mobile'])$(id).onclick=restoreSave;
+  let resizeTimer;new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!session)return;if(locked)resizePending=true;else render();},60);}).observe($('tray'));
+  // A small read-only bridge supports automated acceptance tests without extra UI.
+  window.MeadowGame={getState:()=>session?clone(session):null,ready:()=>!!session&&!generating&&!locked,act,restart,nextLevel,uniqueLayout};
+  initialize();
+})();
+</script>
+</body></html>
